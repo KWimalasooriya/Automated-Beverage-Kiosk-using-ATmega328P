@@ -1,0 +1,1550 @@
+   1               		.file	"led.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   7               		.text
+   8               	.Ltext0:
+   9               		.cfi_sections	.debug_frame
+  10               	.global	I2C_Init
+  12               	I2C_Init:
+  13               	.LFB6:
+  14               		.file 1 "i2c.h"
+   1:i2c.h         **** #ifndef I2C_H
+   2:i2c.h         **** #define I2C_H
+   3:i2c.h         **** 
+   4:i2c.h         **** #include <avr/io.h>           /* Include AVR std. library file */
+   5:i2c.h         **** #include <util/delay.h>       /* Include Delay header file */
+   6:i2c.h         **** 
+   7:i2c.h         **** /* LCD I2C address */
+   8:i2c.h         **** #define LCD_I2C_ADDRESS 0x27  /* Define I2C address of the LCD, often 0x27 or 0x3F */
+   9:i2c.h         **** #define LCD_BACKLIGHT 0x08    /* Backlight control bit */
+  10:i2c.h         **** #define ENABLE 0x04           /* Enable bit */
+  11:i2c.h         **** #define READ_WRITE 0x02       /* Read/Write bit */
+  12:i2c.h         **** #define REGISTER_SELECT 0x01  /* Register select bit */
+  13:i2c.h         **** 
+  14:i2c.h         **** /* I2C Functions */
+  15:i2c.h         **** void I2C_Init(void) {
+  15               		.loc 1 15 0
+  16               		.cfi_startproc
+  17               	/* prologue: function */
+  18               	/* frame size = 0 */
+  19               	/* stack size = 0 */
+  20               	.L__stack_usage = 0
+  16:i2c.h         ****     TWSR = 0x00;              /* Set prescaler bits to zero */
+  21               		.loc 1 16 0
+  22 0000 1092 B900 		sts 185,__zero_reg__
+  17:i2c.h         ****     TWBR = 0x46;              /* SCL frequency = 50kHz for F_CPU = 8MHz */
+  23               		.loc 1 17 0
+  24 0004 86E4      		ldi r24,lo8(70)
+  25 0006 8093 B800 		sts 184,r24
+  18:i2c.h         ****     TWCR = (1<<TWEN);         /* Enable TWI */
+  26               		.loc 1 18 0
+  27 000a 84E0      		ldi r24,lo8(4)
+  28 000c 8093 BC00 		sts 188,r24
+  29 0010 0895      		ret
+  30               		.cfi_endproc
+  31               	.LFE6:
+  33               	.global	I2C_Start
+  35               	I2C_Start:
+  36               	.LFB7:
+  19:i2c.h         **** }
+  20:i2c.h         **** 
+  21:i2c.h         **** void I2C_Start(void) {
+  37               		.loc 1 21 0
+  38               		.cfi_startproc
+  39               	/* prologue: function */
+  40               	/* frame size = 0 */
+  41               	/* stack size = 0 */
+  42               	.L__stack_usage = 0
+  22:i2c.h         ****     TWCR = (1<<TWINT)|(1<<TWSTA)|(1<<TWEN);  /* Enable TWI, generate start condition */
+  43               		.loc 1 22 0
+  44 0012 84EA      		ldi r24,lo8(-92)
+  45 0014 8093 BC00 		sts 188,r24
+  46               	.L3:
+  23:i2c.h         ****     while (!(TWCR & (1<<TWINT)));            /* Wait for TWINT flag to set */
+  47               		.loc 1 23 0 discriminator 1
+  48 0018 8091 BC00 		lds r24,188
+  49 001c 87FF      		sbrs r24,7
+  50 001e 00C0      		rjmp .L3
+  51               	/* epilogue start */
+  24:i2c.h         **** }
+  52               		.loc 1 24 0
+  53 0020 0895      		ret
+  54               		.cfi_endproc
+  55               	.LFE7:
+  57               	.global	I2C_Stop
+  59               	I2C_Stop:
+  60               	.LFB8:
+  25:i2c.h         **** 
+  26:i2c.h         **** void I2C_Stop(void) {
+  61               		.loc 1 26 0
+  62               		.cfi_startproc
+  63               	/* prologue: function */
+  64               	/* frame size = 0 */
+  65               	/* stack size = 0 */
+  66               	.L__stack_usage = 0
+  27:i2c.h         ****     TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);  /* Enable TWI, generate stop condition */
+  67               		.loc 1 27 0
+  68 0022 84E9      		ldi r24,lo8(-108)
+  69 0024 8093 BC00 		sts 188,r24
+  70               	.LVL0:
+  71               	.LBB34:
+  72               	.LBB35:
+  73               		.file 2 "/usr/lib/avr/include/util/delay.h"
+   1:/usr/lib/avr/include/util/delay.h **** /* Copyright (c) 2002, Marek Michalkiewicz
+   2:/usr/lib/avr/include/util/delay.h ****    Copyright (c) 2004,2005,2007 Joerg Wunsch
+   3:/usr/lib/avr/include/util/delay.h ****    Copyright (c) 2007  Florin-Viorel Petrov
+   4:/usr/lib/avr/include/util/delay.h ****    All rights reserved.
+   5:/usr/lib/avr/include/util/delay.h **** 
+   6:/usr/lib/avr/include/util/delay.h ****    Redistribution and use in source and binary forms, with or without
+   7:/usr/lib/avr/include/util/delay.h ****    modification, are permitted provided that the following conditions are met:
+   8:/usr/lib/avr/include/util/delay.h **** 
+   9:/usr/lib/avr/include/util/delay.h ****    * Redistributions of source code must retain the above copyright
+  10:/usr/lib/avr/include/util/delay.h ****      notice, this list of conditions and the following disclaimer.
+  11:/usr/lib/avr/include/util/delay.h **** 
+  12:/usr/lib/avr/include/util/delay.h ****    * Redistributions in binary form must reproduce the above copyright
+  13:/usr/lib/avr/include/util/delay.h ****      notice, this list of conditions and the following disclaimer in
+  14:/usr/lib/avr/include/util/delay.h ****      the documentation and/or other materials provided with the
+  15:/usr/lib/avr/include/util/delay.h ****      distribution.
+  16:/usr/lib/avr/include/util/delay.h **** 
+  17:/usr/lib/avr/include/util/delay.h ****    * Neither the name of the copyright holders nor the names of
+  18:/usr/lib/avr/include/util/delay.h ****      contributors may be used to endorse or promote products derived
+  19:/usr/lib/avr/include/util/delay.h ****      from this software without specific prior written permission.
+  20:/usr/lib/avr/include/util/delay.h **** 
+  21:/usr/lib/avr/include/util/delay.h ****   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  22:/usr/lib/avr/include/util/delay.h ****   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  23:/usr/lib/avr/include/util/delay.h ****   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  24:/usr/lib/avr/include/util/delay.h ****   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  25:/usr/lib/avr/include/util/delay.h ****   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  26:/usr/lib/avr/include/util/delay.h ****   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  27:/usr/lib/avr/include/util/delay.h ****   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  28:/usr/lib/avr/include/util/delay.h ****   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  29:/usr/lib/avr/include/util/delay.h ****   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  30:/usr/lib/avr/include/util/delay.h ****   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  31:/usr/lib/avr/include/util/delay.h ****   POSSIBILITY OF SUCH DAMAGE. */
+  32:/usr/lib/avr/include/util/delay.h **** 
+  33:/usr/lib/avr/include/util/delay.h **** /* $Id$ */
+  34:/usr/lib/avr/include/util/delay.h **** 
+  35:/usr/lib/avr/include/util/delay.h **** #ifndef _UTIL_DELAY_H_
+  36:/usr/lib/avr/include/util/delay.h **** #define _UTIL_DELAY_H_ 1
+  37:/usr/lib/avr/include/util/delay.h **** 
+  38:/usr/lib/avr/include/util/delay.h **** #ifndef __DOXYGEN__
+  39:/usr/lib/avr/include/util/delay.h **** #  ifndef __HAS_DELAY_CYCLES
+  40:/usr/lib/avr/include/util/delay.h **** #    define __HAS_DELAY_CYCLES 1
+  41:/usr/lib/avr/include/util/delay.h **** #  endif
+  42:/usr/lib/avr/include/util/delay.h **** #endif  /* __DOXYGEN__ */
+  43:/usr/lib/avr/include/util/delay.h **** 
+  44:/usr/lib/avr/include/util/delay.h **** #include <inttypes.h>
+  45:/usr/lib/avr/include/util/delay.h **** #include <util/delay_basic.h>
+  46:/usr/lib/avr/include/util/delay.h **** #include <math.h>
+  47:/usr/lib/avr/include/util/delay.h **** 
+  48:/usr/lib/avr/include/util/delay.h **** /** \file */
+  49:/usr/lib/avr/include/util/delay.h **** /** \defgroup util_delay <util/delay.h>: Convenience functions for busy-wait delay loops
+  50:/usr/lib/avr/include/util/delay.h ****     \code
+  51:/usr/lib/avr/include/util/delay.h ****     #define F_CPU 1000000UL  // 1 MHz
+  52:/usr/lib/avr/include/util/delay.h ****     //#define F_CPU 14.7456E6
+  53:/usr/lib/avr/include/util/delay.h ****     #include <util/delay.h>
+  54:/usr/lib/avr/include/util/delay.h ****     \endcode
+  55:/usr/lib/avr/include/util/delay.h **** 
+  56:/usr/lib/avr/include/util/delay.h ****     \note As an alternative method, it is possible to pass the
+  57:/usr/lib/avr/include/util/delay.h ****     F_CPU macro down to the compiler from the Makefile.
+  58:/usr/lib/avr/include/util/delay.h ****     Obviously, in that case, no \c \#define statement should be
+  59:/usr/lib/avr/include/util/delay.h ****     used.
+  60:/usr/lib/avr/include/util/delay.h **** 
+  61:/usr/lib/avr/include/util/delay.h ****     The functions in this header file are wrappers around the basic
+  62:/usr/lib/avr/include/util/delay.h ****     busy-wait functions from <util/delay_basic.h>.  They are meant as
+  63:/usr/lib/avr/include/util/delay.h ****     convenience functions where actual time values can be specified
+  64:/usr/lib/avr/include/util/delay.h ****     rather than a number of cycles to wait for.  The idea behind is
+  65:/usr/lib/avr/include/util/delay.h ****     that compile-time constant expressions will be eliminated by
+  66:/usr/lib/avr/include/util/delay.h ****     compiler optimization so floating-point expressions can be used
+  67:/usr/lib/avr/include/util/delay.h ****     to calculate the number of delay cycles needed based on the CPU
+  68:/usr/lib/avr/include/util/delay.h ****     frequency passed by the macro F_CPU.
+  69:/usr/lib/avr/include/util/delay.h **** 
+  70:/usr/lib/avr/include/util/delay.h ****     \note In order for these functions to work as intended, compiler
+  71:/usr/lib/avr/include/util/delay.h ****     optimizations <em>must</em> be enabled, and the delay time
+  72:/usr/lib/avr/include/util/delay.h ****     <em>must</em> be an expression that is a known constant at
+  73:/usr/lib/avr/include/util/delay.h ****     compile-time.  If these requirements are not met, the resulting
+  74:/usr/lib/avr/include/util/delay.h ****     delay will be much longer (and basically unpredictable), and
+  75:/usr/lib/avr/include/util/delay.h ****     applications that otherwise do not use floating-point calculations
+  76:/usr/lib/avr/include/util/delay.h ****     will experience severe code bloat by the floating-point library
+  77:/usr/lib/avr/include/util/delay.h ****     routines linked into the application.
+  78:/usr/lib/avr/include/util/delay.h **** 
+  79:/usr/lib/avr/include/util/delay.h ****     The functions available allow the specification of microsecond, and
+  80:/usr/lib/avr/include/util/delay.h ****     millisecond delays directly, using the application-supplied macro
+  81:/usr/lib/avr/include/util/delay.h ****     F_CPU as the CPU clock frequency (in Hertz).
+  82:/usr/lib/avr/include/util/delay.h **** 
+  83:/usr/lib/avr/include/util/delay.h **** */
+  84:/usr/lib/avr/include/util/delay.h **** 
+  85:/usr/lib/avr/include/util/delay.h **** #if !defined(__DOXYGEN__)
+  86:/usr/lib/avr/include/util/delay.h **** static __inline__ void _delay_us(double __us) __attribute__((__always_inline__));
+  87:/usr/lib/avr/include/util/delay.h **** static __inline__ void _delay_ms(double __ms) __attribute__((__always_inline__));
+  88:/usr/lib/avr/include/util/delay.h **** #endif
+  89:/usr/lib/avr/include/util/delay.h **** 
+  90:/usr/lib/avr/include/util/delay.h **** #ifndef F_CPU
+  91:/usr/lib/avr/include/util/delay.h **** /* prevent compiler error by supplying a default */
+  92:/usr/lib/avr/include/util/delay.h **** # warning "F_CPU not defined for <util/delay.h>"
+  93:/usr/lib/avr/include/util/delay.h **** /** \ingroup util_delay
+  94:/usr/lib/avr/include/util/delay.h ****     \def F_CPU
+  95:/usr/lib/avr/include/util/delay.h ****     \brief CPU frequency in Hz
+  96:/usr/lib/avr/include/util/delay.h **** 
+  97:/usr/lib/avr/include/util/delay.h ****     The macro F_CPU specifies the CPU frequency to be considered by
+  98:/usr/lib/avr/include/util/delay.h ****     the delay macros.  This macro is normally supplied by the
+  99:/usr/lib/avr/include/util/delay.h ****     environment (e.g. from within a project header, or the project's
+ 100:/usr/lib/avr/include/util/delay.h ****     Makefile).  The value 1 MHz here is only provided as a "vanilla"
+ 101:/usr/lib/avr/include/util/delay.h ****     fallback if no such user-provided definition could be found.
+ 102:/usr/lib/avr/include/util/delay.h **** 
+ 103:/usr/lib/avr/include/util/delay.h ****     In terms of the delay functions, the CPU frequency can be given as
+ 104:/usr/lib/avr/include/util/delay.h ****     a floating-point constant (e.g. 3.6864E6 for 3.6864 MHz).
+ 105:/usr/lib/avr/include/util/delay.h ****     However, the macros in <util/setbaud.h> require it to be an
+ 106:/usr/lib/avr/include/util/delay.h ****     integer value.
+ 107:/usr/lib/avr/include/util/delay.h ****  */
+ 108:/usr/lib/avr/include/util/delay.h **** # define F_CPU 1000000UL
+ 109:/usr/lib/avr/include/util/delay.h **** #endif
+ 110:/usr/lib/avr/include/util/delay.h **** 
+ 111:/usr/lib/avr/include/util/delay.h **** #ifndef __OPTIMIZE__
+ 112:/usr/lib/avr/include/util/delay.h **** # warning "Compiler optimizations disabled; functions from <util/delay.h> won't work as designed"
+ 113:/usr/lib/avr/include/util/delay.h **** #endif
+ 114:/usr/lib/avr/include/util/delay.h **** 
+ 115:/usr/lib/avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+ 116:/usr/lib/avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+ 117:/usr/lib/avr/include/util/delay.h ****   __STDC_HOSTED__
+ 118:/usr/lib/avr/include/util/delay.h **** #  include <math.h>
+ 119:/usr/lib/avr/include/util/delay.h **** #endif
+ 120:/usr/lib/avr/include/util/delay.h **** 
+ 121:/usr/lib/avr/include/util/delay.h **** /**
+ 122:/usr/lib/avr/include/util/delay.h ****    \ingroup util_delay
+ 123:/usr/lib/avr/include/util/delay.h **** 
+ 124:/usr/lib/avr/include/util/delay.h ****    Perform a delay of \c __ms milliseconds, using _delay_loop_2().
+ 125:/usr/lib/avr/include/util/delay.h **** 
+ 126:/usr/lib/avr/include/util/delay.h ****    The macro F_CPU is supposed to be defined to a
+ 127:/usr/lib/avr/include/util/delay.h ****    constant defining the CPU clock frequency (in Hertz).
+ 128:/usr/lib/avr/include/util/delay.h **** 
+ 129:/usr/lib/avr/include/util/delay.h ****    The maximal possible delay is 262.14 ms / F_CPU in MHz.
+ 130:/usr/lib/avr/include/util/delay.h **** 
+ 131:/usr/lib/avr/include/util/delay.h ****    When the user request delay which exceed the maximum possible one,
+ 132:/usr/lib/avr/include/util/delay.h ****    _delay_ms() provides a decreased resolution functionality. In this
+ 133:/usr/lib/avr/include/util/delay.h ****    mode _delay_ms() will work with a resolution of 1/10 ms, providing
+ 134:/usr/lib/avr/include/util/delay.h ****    delays up to 6.5535 seconds (independent from CPU frequency).  The
+ 135:/usr/lib/avr/include/util/delay.h ****    user will not be informed about decreased resolution.
+ 136:/usr/lib/avr/include/util/delay.h **** 
+ 137:/usr/lib/avr/include/util/delay.h ****    If the avr-gcc toolchain has __builtin_avr_delay_cycles()
+ 138:/usr/lib/avr/include/util/delay.h ****    support, maximal possible delay is 4294967.295 ms/ F_CPU in MHz. For
+ 139:/usr/lib/avr/include/util/delay.h ****    values greater than the maximal possible delay, overflows results in
+ 140:/usr/lib/avr/include/util/delay.h ****    no delay i.e., 0ms.
+ 141:/usr/lib/avr/include/util/delay.h **** 
+ 142:/usr/lib/avr/include/util/delay.h ****    Conversion of \c __ms into clock cycles may not always result in
+ 143:/usr/lib/avr/include/util/delay.h ****    integer.  By default, the clock cycles rounded up to next
+ 144:/usr/lib/avr/include/util/delay.h ****    integer. This ensures that the user gets at least \c __ms
+ 145:/usr/lib/avr/include/util/delay.h ****    microseconds of delay.
+ 146:/usr/lib/avr/include/util/delay.h **** 
+ 147:/usr/lib/avr/include/util/delay.h ****    Alternatively, by defining the macro \c __DELAY_ROUND_DOWN__, or
+ 148:/usr/lib/avr/include/util/delay.h ****    \c __DELAY_ROUND_CLOSEST__, before including this header file, the
+ 149:/usr/lib/avr/include/util/delay.h ****    algorithm can be made to round down, or round to closest integer,
+ 150:/usr/lib/avr/include/util/delay.h ****    respectively.
+ 151:/usr/lib/avr/include/util/delay.h **** 
+ 152:/usr/lib/avr/include/util/delay.h ****    \note
+ 153:/usr/lib/avr/include/util/delay.h **** 
+ 154:/usr/lib/avr/include/util/delay.h ****    The implementation of _delay_ms() based on
+ 155:/usr/lib/avr/include/util/delay.h ****    __builtin_avr_delay_cycles() is not backward compatible with older
+ 156:/usr/lib/avr/include/util/delay.h ****    implementations.  In order to get functionality backward compatible
+ 157:/usr/lib/avr/include/util/delay.h ****    with previous versions, the macro \c "__DELAY_BACKWARD_COMPATIBLE__"
+ 158:/usr/lib/avr/include/util/delay.h ****    must be defined before including this header file. Also, the
+ 159:/usr/lib/avr/include/util/delay.h ****    backward compatible algorithm will be chosen if the code is
+ 160:/usr/lib/avr/include/util/delay.h ****    compiled in a <em>freestanding environment</em> (GCC option
+ 161:/usr/lib/avr/include/util/delay.h ****    \c -ffreestanding), as the math functions required for rounding are
+ 162:/usr/lib/avr/include/util/delay.h ****    not available to the compiler then.
+ 163:/usr/lib/avr/include/util/delay.h **** 
+ 164:/usr/lib/avr/include/util/delay.h ****  */
+ 165:/usr/lib/avr/include/util/delay.h **** void
+ 166:/usr/lib/avr/include/util/delay.h **** _delay_ms(double __ms)
+ 167:/usr/lib/avr/include/util/delay.h **** {
+ 168:/usr/lib/avr/include/util/delay.h **** 	double __tmp ;
+ 169:/usr/lib/avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+ 170:/usr/lib/avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+ 171:/usr/lib/avr/include/util/delay.h ****   __STDC_HOSTED__
+ 172:/usr/lib/avr/include/util/delay.h **** 	uint32_t __ticks_dc;
+ 173:/usr/lib/avr/include/util/delay.h **** 	extern void __builtin_avr_delay_cycles(unsigned long);
+ 174:/usr/lib/avr/include/util/delay.h **** 	__tmp = ((F_CPU) / 1e3) * __ms;
+ 175:/usr/lib/avr/include/util/delay.h **** 
+ 176:/usr/lib/avr/include/util/delay.h **** 	#if defined(__DELAY_ROUND_DOWN__)
+ 177:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)fabs(__tmp);
+ 178:/usr/lib/avr/include/util/delay.h **** 
+ 179:/usr/lib/avr/include/util/delay.h **** 	#elif defined(__DELAY_ROUND_CLOSEST__)
+ 180:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(fabs(__tmp)+0.5);
+ 181:/usr/lib/avr/include/util/delay.h **** 
+ 182:/usr/lib/avr/include/util/delay.h **** 	#else
+ 183:/usr/lib/avr/include/util/delay.h **** 		//round up by default
+ 184:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+ 185:/usr/lib/avr/include/util/delay.h **** 	#endif
+ 186:/usr/lib/avr/include/util/delay.h **** 
+ 187:/usr/lib/avr/include/util/delay.h **** 	__builtin_avr_delay_cycles(__ticks_dc);
+ 188:/usr/lib/avr/include/util/delay.h **** 
+ 189:/usr/lib/avr/include/util/delay.h **** #else
+ 190:/usr/lib/avr/include/util/delay.h **** 	uint16_t __ticks;
+ 191:/usr/lib/avr/include/util/delay.h **** 	__tmp = ((F_CPU) / 4e3) * __ms;
+ 192:/usr/lib/avr/include/util/delay.h **** 	if (__tmp < 1.0)
+ 193:/usr/lib/avr/include/util/delay.h **** 		__ticks = 1;
+ 194:/usr/lib/avr/include/util/delay.h **** 	else if (__tmp > 65535)
+ 195:/usr/lib/avr/include/util/delay.h **** 	{
+ 196:/usr/lib/avr/include/util/delay.h **** 		//	__ticks = requested delay in 1/10 ms
+ 197:/usr/lib/avr/include/util/delay.h **** 		__ticks = (uint16_t) (__ms * 10.0);
+ 198:/usr/lib/avr/include/util/delay.h **** 		while(__ticks)
+ 199:/usr/lib/avr/include/util/delay.h **** 		{
+ 200:/usr/lib/avr/include/util/delay.h **** 			// wait 1/10 ms
+ 201:/usr/lib/avr/include/util/delay.h **** 			_delay_loop_2(((F_CPU) / 4e3) / 10);
+ 202:/usr/lib/avr/include/util/delay.h **** 			__ticks --;
+ 203:/usr/lib/avr/include/util/delay.h **** 		}
+ 204:/usr/lib/avr/include/util/delay.h **** 		return;
+ 205:/usr/lib/avr/include/util/delay.h **** 	}
+ 206:/usr/lib/avr/include/util/delay.h **** 	else
+ 207:/usr/lib/avr/include/util/delay.h **** 		__ticks = (uint16_t)__tmp;
+ 208:/usr/lib/avr/include/util/delay.h **** 	_delay_loop_2(__ticks);
+ 209:/usr/lib/avr/include/util/delay.h **** #endif
+ 210:/usr/lib/avr/include/util/delay.h **** }
+ 211:/usr/lib/avr/include/util/delay.h **** 
+ 212:/usr/lib/avr/include/util/delay.h **** /**
+ 213:/usr/lib/avr/include/util/delay.h ****    \ingroup util_delay
+ 214:/usr/lib/avr/include/util/delay.h **** 
+ 215:/usr/lib/avr/include/util/delay.h ****    Perform a delay of \c __us microseconds, using _delay_loop_1().
+ 216:/usr/lib/avr/include/util/delay.h **** 
+ 217:/usr/lib/avr/include/util/delay.h ****    The macro F_CPU is supposed to be defined to a
+ 218:/usr/lib/avr/include/util/delay.h ****    constant defining the CPU clock frequency (in Hertz).
+ 219:/usr/lib/avr/include/util/delay.h **** 
+ 220:/usr/lib/avr/include/util/delay.h ****    The maximal possible delay is 768 us / F_CPU in MHz.
+ 221:/usr/lib/avr/include/util/delay.h **** 
+ 222:/usr/lib/avr/include/util/delay.h ****    If the user requests a delay greater than the maximal possible one,
+ 223:/usr/lib/avr/include/util/delay.h ****    _delay_us() will automatically call _delay_ms() instead.  The user
+ 224:/usr/lib/avr/include/util/delay.h ****    will not be informed about this case.
+ 225:/usr/lib/avr/include/util/delay.h **** 
+ 226:/usr/lib/avr/include/util/delay.h ****    If the avr-gcc toolchain has __builtin_avr_delay_cycles()
+ 227:/usr/lib/avr/include/util/delay.h ****    support, maximal possible delay is 4294967.295 us/ F_CPU in MHz. For
+ 228:/usr/lib/avr/include/util/delay.h ****    values greater than the maximal possible delay, overflow results in
+ 229:/usr/lib/avr/include/util/delay.h ****    no delay i.e., 0us.
+ 230:/usr/lib/avr/include/util/delay.h **** 
+ 231:/usr/lib/avr/include/util/delay.h ****    Conversion of \c __us into clock cycles may not always result in
+ 232:/usr/lib/avr/include/util/delay.h ****    integer.  By default, the clock cycles rounded up to next
+ 233:/usr/lib/avr/include/util/delay.h ****    integer. This ensures that the user gets at least \c __us
+ 234:/usr/lib/avr/include/util/delay.h ****    microseconds of delay.
+ 235:/usr/lib/avr/include/util/delay.h **** 
+ 236:/usr/lib/avr/include/util/delay.h ****    Alternatively, by defining the macro \c __DELAY_ROUND_DOWN__, or
+ 237:/usr/lib/avr/include/util/delay.h ****    \c __DELAY_ROUND_CLOSEST__, before including this header file, the
+ 238:/usr/lib/avr/include/util/delay.h ****    algorithm can be made to round down, or round to closest integer,
+ 239:/usr/lib/avr/include/util/delay.h ****    respectively.
+ 240:/usr/lib/avr/include/util/delay.h **** 
+ 241:/usr/lib/avr/include/util/delay.h ****    \note
+ 242:/usr/lib/avr/include/util/delay.h **** 
+ 243:/usr/lib/avr/include/util/delay.h ****    The implementation of _delay_ms() based on
+ 244:/usr/lib/avr/include/util/delay.h ****    __builtin_avr_delay_cycles() is not backward compatible with older
+ 245:/usr/lib/avr/include/util/delay.h ****    implementations.  In order to get functionality backward compatible
+ 246:/usr/lib/avr/include/util/delay.h ****    with previous versions, the macro \c __DELAY_BACKWARD_COMPATIBLE__
+ 247:/usr/lib/avr/include/util/delay.h ****    must be defined before including this header file. Also, the
+ 248:/usr/lib/avr/include/util/delay.h ****    backward compatible algorithm will be chosen if the code is
+ 249:/usr/lib/avr/include/util/delay.h ****    compiled in a <em>freestanding environment</em> (GCC option
+ 250:/usr/lib/avr/include/util/delay.h ****    \c -ffreestanding), as the math functions required for rounding are
+ 251:/usr/lib/avr/include/util/delay.h ****    not available to the compiler then.
+ 252:/usr/lib/avr/include/util/delay.h **** 
+ 253:/usr/lib/avr/include/util/delay.h ****  */
+ 254:/usr/lib/avr/include/util/delay.h **** void
+ 255:/usr/lib/avr/include/util/delay.h **** _delay_us(double __us)
+ 256:/usr/lib/avr/include/util/delay.h **** {
+ 257:/usr/lib/avr/include/util/delay.h **** 	double __tmp ;
+ 258:/usr/lib/avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+ 259:/usr/lib/avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+ 260:/usr/lib/avr/include/util/delay.h ****   __STDC_HOSTED__
+ 261:/usr/lib/avr/include/util/delay.h **** 	uint32_t __ticks_dc;
+ 262:/usr/lib/avr/include/util/delay.h **** 	extern void __builtin_avr_delay_cycles(unsigned long);
+ 263:/usr/lib/avr/include/util/delay.h **** 	__tmp = ((F_CPU) / 1e6) * __us;
+ 264:/usr/lib/avr/include/util/delay.h **** 
+ 265:/usr/lib/avr/include/util/delay.h **** 	#if defined(__DELAY_ROUND_DOWN__)
+ 266:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)fabs(__tmp);
+ 267:/usr/lib/avr/include/util/delay.h **** 
+ 268:/usr/lib/avr/include/util/delay.h **** 	#elif defined(__DELAY_ROUND_CLOSEST__)
+ 269:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(fabs(__tmp)+0.5);
+ 270:/usr/lib/avr/include/util/delay.h **** 
+ 271:/usr/lib/avr/include/util/delay.h **** 	#else
+ 272:/usr/lib/avr/include/util/delay.h **** 		//round up by default
+ 273:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+ 274:/usr/lib/avr/include/util/delay.h **** 	#endif
+ 275:/usr/lib/avr/include/util/delay.h **** 
+ 276:/usr/lib/avr/include/util/delay.h **** 	__builtin_avr_delay_cycles(__ticks_dc);
+  74               		.loc 2 276 0
+  75 0028 8FE8      		ldi r24,lo8(399)
+  76 002a 91E0      		ldi r25,hi8(399)
+  77 002c 0197      	1:	sbiw r24,1
+  78 002e 01F4      		brne 1b
+  79 0030 00C0      		rjmp .
+  80 0032 0000      		nop
+  81               	.LVL1:
+  82 0034 0895      		ret
+  83               	.LBE35:
+  84               	.LBE34:
+  85               		.cfi_endproc
+  86               	.LFE8:
+  88               	.global	I2C_Write
+  90               	I2C_Write:
+  91               	.LFB9:
+  28:i2c.h         ****     _delay_us(100);
+  29:i2c.h         **** }
+  30:i2c.h         **** 
+  31:i2c.h         **** uint8_t I2C_Write(uint8_t data) {
+  92               		.loc 1 31 0
+  93               		.cfi_startproc
+  94               	.LVL2:
+  95               	/* prologue: function */
+  96               	/* frame size = 0 */
+  97               	/* stack size = 0 */
+  98               	.L__stack_usage = 0
+  32:i2c.h         ****     TWDR = data;              /* Copy data to TWI data register */
+  99               		.loc 1 32 0
+ 100 0036 8093 BB00 		sts 187,r24
+  33:i2c.h         ****     TWCR = (1<<TWINT)|(1<<TWEN); /* Enable TWI and clear interrupt flag */
+ 101               		.loc 1 33 0
+ 102 003a 84E8      		ldi r24,lo8(-124)
+ 103               	.LVL3:
+ 104 003c 8093 BC00 		sts 188,r24
+ 105               	.LVL4:
+ 106               	.L8:
+  34:i2c.h         ****     while (!(TWCR & (1<<TWINT)));  /* Wait for TWINT flag to set */
+ 107               		.loc 1 34 0 discriminator 1
+ 108 0040 8091 BC00 		lds r24,188
+ 109 0044 87FF      		sbrs r24,7
+ 110 0046 00C0      		rjmp .L8
+  35:i2c.h         ****     
+  36:i2c.h         ****     // Check status
+  37:i2c.h         ****     uint8_t status = TWSR & 0xF8;
+ 111               		.loc 1 37 0
+ 112 0048 9091 B900 		lds r25,185
+ 113 004c 987F      		andi r25,lo8(-8)
+ 114               	.LVL5:
+  38:i2c.h         ****     if (status == 0x28 || status == 0x18) { /* 0x28 = TW_MT_DATA_ACK, 0x18 = TW_MT_SLA_ACK */
+ 115               		.loc 1 38 0
+ 116 004e 9832      		cpi r25,lo8(40)
+ 117 0050 01F0      		breq .L11
+  39:i2c.h         ****         return 0;  // ACK received
+ 118               		.loc 1 39 0 discriminator 1
+ 119 0052 81E0      		ldi r24,lo8(1)
+ 120 0054 9831      		cpi r25,lo8(24)
+ 121 0056 01F4      		brne .L9
+ 122               	.L11:
+ 123               		.loc 1 39 0 is_stmt 0
+ 124 0058 80E0      		ldi r24,0
+ 125               	.L9:
+  40:i2c.h         ****     } else {
+  41:i2c.h         ****         return 1;  // NACK or error
+  42:i2c.h         ****     }
+  43:i2c.h         **** }
+ 126               		.loc 1 43 0 is_stmt 1
+ 127 005a 0895      		ret
+ 128               		.cfi_endproc
+ 129               	.LFE9:
+ 131               	.global	LCD_EnablePulse
+ 133               	LCD_EnablePulse:
+ 134               	.LFB10:
+  44:i2c.h         **** 
+  45:i2c.h         **** /* LCD Functions */
+  46:i2c.h         **** void LCD_EnablePulse(uint8_t data) {
+ 135               		.loc 1 46 0
+ 136               		.cfi_startproc
+ 137               	.LVL6:
+ 138 005c CF93      		push r28
+ 139               	.LCFI0:
+ 140               		.cfi_def_cfa_offset 3
+ 141               		.cfi_offset 28, -2
+ 142               	/* prologue: function */
+ 143               	/* frame size = 0 */
+ 144               	/* stack size = 1 */
+ 145               	.L__stack_usage = 1
+ 146 005e C82F      		mov r28,r24
+  47:i2c.h         ****     I2C_Write(data | ENABLE);  /* Enable bit high */
+ 147               		.loc 1 47 0
+ 148 0060 8460      		ori r24,lo8(4)
+ 149               	.LVL7:
+ 150 0062 0E94 0000 		call I2C_Write
+ 151               	.LVL8:
+ 152               	.LBB36:
+ 153               	.LBB37:
+ 154               		.loc 2 276 0
+ 155 0066 85E0      		ldi r24,lo8(5)
+ 156 0068 8A95      	1:	dec r24
+ 157 006a 01F4      		brne 1b
+ 158 006c 0000      		nop
+ 159               	.LVL9:
+ 160               	.LBE37:
+ 161               	.LBE36:
+  48:i2c.h         ****     _delay_us(1);              /* Enable pulse width */
+  49:i2c.h         ****     I2C_Write(data & ~ENABLE); /* Enable bit low */
+ 162               		.loc 1 49 0
+ 163 006e 8C2F      		mov r24,r28
+ 164 0070 8B7F      		andi r24,lo8(-5)
+ 165 0072 0E94 0000 		call I2C_Write
+ 166               	.LVL10:
+ 167               	.LBB38:
+ 168               	.LBB39:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 169               		.loc 2 187 0
+ 170 0076 8FE3      		ldi r24,lo8(7999)
+ 171 0078 9FE1      		ldi r25,hi8(7999)
+ 172 007a 0197      	1:	sbiw r24,1
+ 173 007c 01F4      		brne 1b
+ 174 007e 00C0      		rjmp .
+ 175 0080 0000      		nop
+ 176               	.LVL11:
+ 177               	/* epilogue start */
+ 178               	.LBE39:
+ 179               	.LBE38:
+  50:i2c.h         ****     _delay_ms(2);              /* Wait for the command to execute */
+  51:i2c.h         **** }
+ 180               		.loc 1 51 0
+ 181 0082 CF91      		pop r28
+ 182               	.LVL12:
+ 183 0084 0895      		ret
+ 184               		.cfi_endproc
+ 185               	.LFE10:
+ 187               	.global	LCD_Command
+ 189               	LCD_Command:
+ 190               	.LFB11:
+  52:i2c.h         **** 
+  53:i2c.h         **** void LCD_Command(uint8_t cmnd) {
+ 191               		.loc 1 53 0
+ 192               		.cfi_startproc
+ 193               	.LVL13:
+ 194 0086 CF93      		push r28
+ 195               	.LCFI1:
+ 196               		.cfi_def_cfa_offset 3
+ 197               		.cfi_offset 28, -2
+ 198               	/* prologue: function */
+ 199               	/* frame size = 0 */
+ 200               	/* stack size = 1 */
+ 201               	.L__stack_usage = 1
+ 202 0088 C82F      		mov r28,r24
+ 203               	.LVL14:
+  54:i2c.h         ****     uint8_t highNibble = (cmnd & 0xF0) | LCD_BACKLIGHT;
+  55:i2c.h         ****     uint8_t lowNibble = ((cmnd << 4) & 0xF0) | LCD_BACKLIGHT;
+  56:i2c.h         **** 
+  57:i2c.h         ****     I2C_Start();
+ 204               		.loc 1 57 0
+ 205 008a 0E94 0000 		call I2C_Start
+ 206               	.LVL15:
+  58:i2c.h         ****     I2C_Write(LCD_I2C_ADDRESS << 1);  /* Send the I2C address with write mode */
+ 207               		.loc 1 58 0
+ 208 008e 8EE4      		ldi r24,lo8(78)
+ 209 0090 0E94 0000 		call I2C_Write
+ 210               	.LVL16:
+  59:i2c.h         ****     
+  60:i2c.h         ****     LCD_EnablePulse(highNibble);      /* Send the upper nibble */
+ 211               		.loc 1 60 0
+ 212 0094 8C2F      		mov r24,r28
+ 213 0096 807F      		andi r24,lo8(-16)
+ 214 0098 8860      		ori r24,lo8(8)
+ 215               	.LVL17:
+ 216 009a 0E94 0000 		call LCD_EnablePulse
+ 217               	.LVL18:
+  61:i2c.h         ****     LCD_EnablePulse(lowNibble);       /* Send the lower nibble */
+ 218               		.loc 1 61 0
+ 219 009e 20E1      		ldi r18,lo8(16)
+ 220 00a0 C29F      		mul r28,r18
+ 221 00a2 C001      		movw r24,r0
+ 222 00a4 1124      		clr __zero_reg__
+ 223 00a6 8860      		ori r24,lo8(8)
+ 224 00a8 0E94 0000 		call LCD_EnablePulse
+ 225               	.LVL19:
+ 226               	/* epilogue start */
+  62:i2c.h         ****     
+  63:i2c.h         ****     I2C_Stop();
+  64:i2c.h         **** }
+ 227               		.loc 1 64 0
+ 228 00ac CF91      		pop r28
+ 229               	.LVL20:
+  63:i2c.h         **** }
+ 230               		.loc 1 63 0
+ 231 00ae 0C94 0000 		jmp I2C_Stop
+ 232               	.LVL21:
+ 233               		.cfi_endproc
+ 234               	.LFE11:
+ 236               	.global	LCD_Char
+ 238               	LCD_Char:
+ 239               	.LFB12:
+  65:i2c.h         **** 
+  66:i2c.h         **** void LCD_Char(uint8_t data) {
+ 240               		.loc 1 66 0
+ 241               		.cfi_startproc
+ 242               	.LVL22:
+ 243 00b2 CF93      		push r28
+ 244               	.LCFI2:
+ 245               		.cfi_def_cfa_offset 3
+ 246               		.cfi_offset 28, -2
+ 247               	/* prologue: function */
+ 248               	/* frame size = 0 */
+ 249               	/* stack size = 1 */
+ 250               	.L__stack_usage = 1
+ 251 00b4 C82F      		mov r28,r24
+ 252               	.LVL23:
+  67:i2c.h         ****     uint8_t highNibble = (data & 0xF0) | REGISTER_SELECT | LCD_BACKLIGHT;
+  68:i2c.h         ****     uint8_t lowNibble = ((data << 4) & 0xF0) | REGISTER_SELECT | LCD_BACKLIGHT;
+  69:i2c.h         **** 
+  70:i2c.h         ****     I2C_Start();
+ 253               		.loc 1 70 0
+ 254 00b6 0E94 0000 		call I2C_Start
+ 255               	.LVL24:
+  71:i2c.h         ****     I2C_Write(LCD_I2C_ADDRESS << 1);  /* Send the I2C address with write mode */
+ 256               		.loc 1 71 0
+ 257 00ba 8EE4      		ldi r24,lo8(78)
+ 258 00bc 0E94 0000 		call I2C_Write
+ 259               	.LVL25:
+  72:i2c.h         ****     
+  73:i2c.h         ****     LCD_EnablePulse(highNibble);      /* Send the upper nibble with RS=1 for data */
+ 260               		.loc 1 73 0
+ 261 00c0 8C2F      		mov r24,r28
+ 262 00c2 807F      		andi r24,lo8(-16)
+ 263 00c4 8960      		ori r24,lo8(9)
+ 264               	.LVL26:
+ 265 00c6 0E94 0000 		call LCD_EnablePulse
+ 266               	.LVL27:
+  74:i2c.h         ****     LCD_EnablePulse(lowNibble);       /* Send the lower nibble with RS=1 */
+ 267               		.loc 1 74 0
+ 268 00ca 20E1      		ldi r18,lo8(16)
+ 269 00cc C29F      		mul r28,r18
+ 270 00ce C001      		movw r24,r0
+ 271 00d0 1124      		clr __zero_reg__
+ 272 00d2 8960      		ori r24,lo8(9)
+ 273 00d4 0E94 0000 		call LCD_EnablePulse
+ 274               	.LVL28:
+ 275               	/* epilogue start */
+  75:i2c.h         ****     
+  76:i2c.h         ****     I2C_Stop();
+  77:i2c.h         **** }
+ 276               		.loc 1 77 0
+ 277 00d8 CF91      		pop r28
+ 278               	.LVL29:
+  76:i2c.h         **** }
+ 279               		.loc 1 76 0
+ 280 00da 0C94 0000 		jmp I2C_Stop
+ 281               	.LVL30:
+ 282               		.cfi_endproc
+ 283               	.LFE12:
+ 285               	.global	LCD_Init
+ 287               	LCD_Init:
+ 288               	.LFB13:
+  78:i2c.h         **** 
+  79:i2c.h         **** void LCD_Init(void) {
+ 289               		.loc 1 79 0
+ 290               		.cfi_startproc
+ 291               	/* prologue: function */
+ 292               	/* frame size = 0 */
+ 293               	/* stack size = 0 */
+ 294               	.L__stack_usage = 0
+  80:i2c.h         ****     I2C_Init();                /* Initialize I2C */
+ 295               		.loc 1 80 0
+ 296 00de 0E94 0000 		call I2C_Init
+ 297               	.LVL31:
+ 298               	.LBB40:
+ 299               	.LBB41:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 300               		.loc 2 187 0
+ 301 00e2 2FEF      		ldi r18,lo8(63999)
+ 302 00e4 89EF      		ldi r24,hi8(63999)
+ 303 00e6 90E0      		ldi r25,hlo8(63999)
+ 304 00e8 2150      	1:	subi r18,1
+ 305 00ea 8040      		sbci r24,0
+ 306 00ec 9040      		sbci r25,0
+ 307 00ee 01F4      		brne 1b
+ 308 00f0 00C0      		rjmp .
+ 309 00f2 0000      		nop
+ 310               	.LVL32:
+ 311               	.LBE41:
+ 312               	.LBE40:
+  81:i2c.h         ****     _delay_ms(20);             /* LCD Power ON delay */
+  82:i2c.h         ****     
+  83:i2c.h         ****     LCD_Command(0x02);         /* Initialize for 4-bit mode */
+ 313               		.loc 1 83 0
+ 314 00f4 82E0      		ldi r24,lo8(2)
+ 315 00f6 0E94 0000 		call LCD_Command
+ 316               	.LVL33:
+  84:i2c.h         ****     LCD_Command(0x28);         /* 2 lines, 5x7 matrix in 4-bit mode */
+ 317               		.loc 1 84 0
+ 318 00fa 88E2      		ldi r24,lo8(40)
+ 319 00fc 0E94 0000 		call LCD_Command
+ 320               	.LVL34:
+  85:i2c.h         ****     LCD_Command(0x0C);         /* Display ON, Cursor OFF */
+ 321               		.loc 1 85 0
+ 322 0100 8CE0      		ldi r24,lo8(12)
+ 323 0102 0E94 0000 		call LCD_Command
+ 324               	.LVL35:
+  86:i2c.h         ****     LCD_Command(0x06);         /* Auto increment cursor */
+ 325               		.loc 1 86 0
+ 326 0106 86E0      		ldi r24,lo8(6)
+ 327 0108 0E94 0000 		call LCD_Command
+ 328               	.LVL36:
+  87:i2c.h         ****     LCD_Command(0x01);         /* Clear display */
+ 329               		.loc 1 87 0
+ 330 010c 81E0      		ldi r24,lo8(1)
+ 331 010e 0E94 0000 		call LCD_Command
+ 332               	.LVL37:
+ 333               	.LBB42:
+ 334               	.LBB43:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 335               		.loc 2 187 0
+ 336 0112 8FE3      		ldi r24,lo8(7999)
+ 337 0114 9FE1      		ldi r25,hi8(7999)
+ 338 0116 0197      	1:	sbiw r24,1
+ 339 0118 01F4      		brne 1b
+ 340 011a 00C0      		rjmp .
+ 341 011c 0000      		nop
+ 342               	.LVL38:
+ 343 011e 0895      		ret
+ 344               	.LBE43:
+ 345               	.LBE42:
+ 346               		.cfi_endproc
+ 347               	.LFE13:
+ 349               	.global	LCD_String
+ 351               	LCD_String:
+ 352               	.LFB14:
+  88:i2c.h         ****     _delay_ms(2);
+  89:i2c.h         **** }
+  90:i2c.h         **** 
+  91:i2c.h         **** void LCD_String(char *str) {
+ 353               		.loc 1 91 0
+ 354               		.cfi_startproc
+ 355               	.LVL39:
+ 356 0120 CF93      		push r28
+ 357               	.LCFI3:
+ 358               		.cfi_def_cfa_offset 3
+ 359               		.cfi_offset 28, -2
+ 360 0122 DF93      		push r29
+ 361               	.LCFI4:
+ 362               		.cfi_def_cfa_offset 4
+ 363               		.cfi_offset 29, -3
+ 364               	/* prologue: function */
+ 365               	/* frame size = 0 */
+ 366               	/* stack size = 2 */
+ 367               	.L__stack_usage = 2
+ 368 0124 EC01      		movw r28,r24
+ 369               	.LVL40:
+ 370               	.L18:
+  92:i2c.h         ****     while (*str) {
+ 371               		.loc 1 92 0
+ 372 0126 8991      		ld r24,Y+
+ 373               	.LVL41:
+ 374 0128 8823      		tst r24
+ 375 012a 01F0      		breq .L20
+ 376               	.LVL42:
+  93:i2c.h         ****         LCD_Char(*str++);
+ 377               		.loc 1 93 0
+ 378 012c 0E94 0000 		call LCD_Char
+ 379               	.LVL43:
+ 380 0130 00C0      		rjmp .L18
+ 381               	.LVL44:
+ 382               	.L20:
+ 383               	/* epilogue start */
+  94:i2c.h         ****     }
+  95:i2c.h         **** }
+ 384               		.loc 1 95 0
+ 385 0132 DF91      		pop r29
+ 386 0134 CF91      		pop r28
+ 387               	.LVL45:
+ 388 0136 0895      		ret
+ 389               		.cfi_endproc
+ 390               	.LFE14:
+ 392               	.global	LCD_Clear
+ 394               	LCD_Clear:
+ 395               	.LFB15:
+  96:i2c.h         **** 
+  97:i2c.h         **** void LCD_Clear(void) {
+ 396               		.loc 1 97 0
+ 397               		.cfi_startproc
+ 398               	/* prologue: function */
+ 399               	/* frame size = 0 */
+ 400               	/* stack size = 0 */
+ 401               	.L__stack_usage = 0
+  98:i2c.h         ****     LCD_Command(0x01);  // 0x01 is the command to clear the display
+ 402               		.loc 1 98 0
+ 403 0138 81E0      		ldi r24,lo8(1)
+ 404 013a 0E94 0000 		call LCD_Command
+ 405               	.LVL46:
+ 406               	.LBB44:
+ 407               	.LBB45:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 408               		.loc 2 187 0
+ 409 013e 8FE3      		ldi r24,lo8(7999)
+ 410 0140 9FE1      		ldi r25,hi8(7999)
+ 411 0142 0197      	1:	sbiw r24,1
+ 412 0144 01F4      		brne 1b
+ 413 0146 00C0      		rjmp .
+ 414 0148 0000      		nop
+ 415               	.LVL47:
+ 416 014a 0895      		ret
+ 417               	.LBE45:
+ 418               	.LBE44:
+ 419               		.cfi_endproc
+ 420               	.LFE15:
+ 422               	.global	setup
+ 424               	setup:
+ 425               	.LFB17:
+ 426               		.file 3 "led.c"
+   1:led.c         **** #include <avr/io.h>
+   2:led.c         **** #include <util/delay.h>
+   3:led.c         **** #include "i2c.h"          // Include the I2C LCD header file
+   4:led.c         **** 
+   5:led.c         **** // Function prototypes
+   6:led.c         **** void setup();
+   7:led.c         **** uint8_t isButton1Pressed();  // Check if Button 1 is pressed
+   8:led.c         **** uint8_t isButton2Pressed();  // Check if Button 2 is pressed
+   9:led.c         **** void displayProcessing();    // Display "Processing" and "Auto Mode"
+  10:led.c         **** void displayChoosePercentages();  // Display "Choose the percentages"
+  11:led.c         **** void displayFruit(char *fruit, uint8_t percentage);  // Display fruit name with percentage
+  12:led.c         **** void displayOrderComplete();  // Display final order message
+  13:led.c         **** uint8_t mapPotentiometer(uint16_t value);  // Map potentiometer value to percentage
+  14:led.c         **** 
+  15:led.c         **** int main(void) {
+  16:led.c         ****     uint8_t button1State = 0;
+  17:led.c         ****     uint8_t lastButton1State = 0;
+  18:led.c         ****     uint8_t button2State = 0;
+  19:led.c         ****     uint8_t lastButton2State = 0;
+  20:led.c         ****     uint8_t fruitIndex = 0;  // To track which fruit to display
+  21:led.c         ****     char *fruits[] = {"PINEAPPLE", "MANGO", "APPLE", "ORANGE"};
+  22:led.c         **** 
+  23:led.c         ****     setup();                // Initialize pins
+  24:led.c         ****     LCD_Init();             // Initialize LCD
+  25:led.c         **** 
+  26:led.c         ****     // Initial display of "Auto Mode" and "Manual Mode"
+  27:led.c         ****     LCD_Clear();
+  28:led.c         ****     LCD_String("1. Auto Mode");    // Write initial string on the 1st row
+  29:led.c         ****     LCD_Command(0x80 | 0x40);      // Move cursor to 2nd row
+  30:led.c         ****     LCD_String("2. Manual Mode");  // Write string on the 2nd row
+  31:led.c         ****     
+  32:led.c         ****     while (1) {
+  33:led.c         ****         // Check if Button 1 (PC3) is pressed
+  34:led.c         ****         button1State = isButton1Pressed();
+  35:led.c         **** 
+  36:led.c         ****         // Falling edge detection for Button 1 (first button)
+  37:led.c         ****         if (button1State && !lastButton1State) {
+  38:led.c         ****             // Show "Processing" and "Auto Mode"
+  39:led.c         ****             displayProcessing();
+  40:led.c         ****             _delay_ms(300);  // Wait for 3 seconds
+  41:led.c         **** 
+  42:led.c         ****             // Show "Choose the percentages"
+  43:led.c         ****             displayChoosePercentages();
+  44:led.c         ****             _delay_ms(300);  // Wait for 3 seconds
+  45:led.c         **** 
+  46:led.c         ****             // Display the first fruit after the 3-second intervals
+  47:led.c         ****             uint16_t potValue = ADC;  // Read the potentiometer value (ADC value 0-1023)
+  48:led.c         ****             uint8_t percentage = mapPotentiometer(potValue);  // Map it to percentage (0% to 100%)
+  49:led.c         ****             displayFruit(fruits[fruitIndex], percentage);
+  50:led.c         ****             fruitIndex++;
+  51:led.c         ****         }
+  52:led.c         ****         lastButton1State = button1State;
+  53:led.c         **** 
+  54:led.c         ****         // Check if Button 2 (PC2) is pressed
+  55:led.c         ****         button2State = isButton2Pressed();
+  56:led.c         **** 
+  57:led.c         ****         // Falling edge detection for Button 2 (second button)
+  58:led.c         ****         if (button2State && !lastButton2State) {
+  59:led.c         ****             if (fruitIndex < 4) {
+  60:led.c         ****                 // Show next fruit
+  61:led.c         ****                 uint16_t potValue = ADC;  // Read the potentiometer value (ADC value 0-1023)
+  62:led.c         ****                 uint8_t percentage = mapPotentiometer(potValue);  // Map it to percentage (0% to 10
+  63:led.c         ****                 displayFruit(fruits[fruitIndex], percentage);
+  64:led.c         ****                 fruitIndex++;
+  65:led.c         ****             } else {
+  66:led.c         ****                 // If all fruits are displayed, show the final order message
+  67:led.c         ****                 displayOrderComplete();  // Display "Your order is" and "on the way"
+  68:led.c         ****                 fruitIndex = 0;  // Reset the fruit index
+  69:led.c         ****             }
+  70:led.c         ****         }
+  71:led.c         ****         lastButton2State = button2State;
+  72:led.c         **** 
+  73:led.c         ****         // Small delay for debouncing
+  74:led.c         ****         _delay_ms(100);
+  75:led.c         ****     }
+  76:led.c         **** 
+  77:led.c         ****     return 0;
+  78:led.c         **** }
+  79:led.c         **** 
+  80:led.c         **** // Function to set up the button and potentiometer pins
+  81:led.c         **** void setup() {
+ 427               		.loc 3 81 0
+ 428               		.cfi_startproc
+ 429               	/* prologue: function */
+ 430               	/* frame size = 0 */
+ 431               	/* stack size = 0 */
+ 432               	.L__stack_usage = 0
+  82:led.c         ****     // Set PC3 (Button 1) and PC2 (Button 2) as input
+  83:led.c         ****     DDRC &= ~(1 << PC3);
+ 433               		.loc 3 83 0
+ 434 014c 3B98      		cbi 0x7,3
+  84:led.c         ****     DDRC &= ~(1 << PC2);
+ 435               		.loc 3 84 0
+ 436 014e 3A98      		cbi 0x7,2
+  85:led.c         **** 
+  86:led.c         ****     // Enable pull-up resistors on PC3 and PC2
+  87:led.c         ****     PORTC |= (1 << PC3);
+ 437               		.loc 3 87 0
+ 438 0150 439A      		sbi 0x8,3
+  88:led.c         ****     PORTC |= (1 << PC2);
+ 439               		.loc 3 88 0
+ 440 0152 429A      		sbi 0x8,2
+  89:led.c         **** 
+  90:led.c         ****     // Set up the ADC (Analog-to-Digital Converter) for the potentiometer
+  91:led.c         ****     ADMUX = (1 << REFS0);            // Reference voltage is AVcc
+ 441               		.loc 3 91 0
+ 442 0154 80E4      		ldi r24,lo8(64)
+ 443 0156 8093 7C00 		sts 124,r24
+  92:led.c         ****     ADCSRA = (1 << ADEN) | (1 << ADPS2) | (1 << ADPS1);  // Enable ADC and set prescaler to 64
+ 444               		.loc 3 92 0
+ 445 015a 86E8      		ldi r24,lo8(-122)
+ 446 015c 8093 7A00 		sts 122,r24
+ 447 0160 0895      		ret
+ 448               		.cfi_endproc
+ 449               	.LFE17:
+ 451               	.global	isButton1Pressed
+ 453               	isButton1Pressed:
+ 454               	.LFB18:
+  93:led.c         **** }
+  94:led.c         **** 
+  95:led.c         **** // Function to check if Button 1 is pressed
+  96:led.c         **** uint8_t isButton1Pressed() {
+ 455               		.loc 3 96 0
+ 456               		.cfi_startproc
+ 457               	/* prologue: function */
+ 458               	/* frame size = 0 */
+ 459               	/* stack size = 0 */
+ 460               	.L__stack_usage = 0
+  97:led.c         ****     return !(PINC & (1 << PC3));  // Return true (1) if Button 1 is pressed
+ 461               		.loc 3 97 0
+ 462 0162 86B1      		in r24,0x6
+ 463 0164 83FB      		bst r24,3
+ 464 0166 8827      		clr r24
+ 465 0168 80F9      		bld r24,0
+  98:led.c         **** }
+ 466               		.loc 3 98 0
+ 467 016a 91E0      		ldi r25,lo8(1)
+ 468 016c 8927      		eor r24,r25
+ 469 016e 0895      		ret
+ 470               		.cfi_endproc
+ 471               	.LFE18:
+ 473               	.global	isButton2Pressed
+ 475               	isButton2Pressed:
+ 476               	.LFB19:
+  99:led.c         **** 
+ 100:led.c         **** // Function to check if Button 2 is pressed
+ 101:led.c         **** uint8_t isButton2Pressed() {
+ 477               		.loc 3 101 0
+ 478               		.cfi_startproc
+ 479               	/* prologue: function */
+ 480               	/* frame size = 0 */
+ 481               	/* stack size = 0 */
+ 482               	.L__stack_usage = 0
+ 102:led.c         ****     return !(PINC & (1 << PC2));  // Return true (1) if Button 2 is pressed
+ 483               		.loc 3 102 0
+ 484 0170 86B1      		in r24,0x6
+ 485 0172 82FB      		bst r24,2
+ 486 0174 8827      		clr r24
+ 487 0176 80F9      		bld r24,0
+ 103:led.c         **** }
+ 488               		.loc 3 103 0
+ 489 0178 91E0      		ldi r25,lo8(1)
+ 490 017a 8927      		eor r24,r25
+ 491 017c 0895      		ret
+ 492               		.cfi_endproc
+ 493               	.LFE19:
+ 495               		.section	.rodata.str1.1,"aMS",@progbits,1
+ 496               	.LC5:
+ 497 0000 5072 6F63 		.string	"Processing"
+ 497      6573 7369 
+ 497      6E67 00
+ 498               	.LC6:
+ 499 000b 4175 746F 		.string	"Auto Mode..."
+ 499      204D 6F64 
+ 499      652E 2E2E 
+ 499      00
+ 500               		.text
+ 501               	.global	displayProcessing
+ 503               	displayProcessing:
+ 504               	.LFB20:
+ 104:led.c         **** 
+ 105:led.c         **** // Function to display "Processing" and "Auto Mode"
+ 106:led.c         **** void displayProcessing() {
+ 505               		.loc 3 106 0
+ 506               		.cfi_startproc
+ 507               	/* prologue: function */
+ 508               	/* frame size = 0 */
+ 509               	/* stack size = 0 */
+ 510               	.L__stack_usage = 0
+ 107:led.c         ****     LCD_Clear();                 // Clear the LCD
+ 511               		.loc 3 107 0
+ 512 017e 0E94 0000 		call LCD_Clear
+ 513               	.LVL48:
+ 108:led.c         ****     LCD_String("Processing");     // Display "Processing" on the 1st row
+ 514               		.loc 3 108 0
+ 515 0182 80E0      		ldi r24,lo8(.LC5)
+ 516 0184 90E0      		ldi r25,hi8(.LC5)
+ 517 0186 0E94 0000 		call LCD_String
+ 518               	.LVL49:
+ 109:led.c         ****     LCD_Command(0x80 | 0x40);     // Move cursor to 2nd row
+ 519               		.loc 3 109 0
+ 520 018a 80EC      		ldi r24,lo8(-64)
+ 521 018c 0E94 0000 		call LCD_Command
+ 522               	.LVL50:
+ 110:led.c         ****     LCD_String("Auto Mode...");      // Display "Auto Mode" on the 2nd row
+ 523               		.loc 3 110 0
+ 524 0190 80E0      		ldi r24,lo8(.LC6)
+ 525 0192 90E0      		ldi r25,hi8(.LC6)
+ 526 0194 0C94 0000 		jmp LCD_String
+ 527               	.LVL51:
+ 528               		.cfi_endproc
+ 529               	.LFE20:
+ 531               		.section	.rodata.str1.1
+ 532               	.LC7:
+ 533 0018 4368 6F6F 		.string	"Choose the"
+ 533      7365 2074 
+ 533      6865 00
+ 534               	.LC8:
+ 535 0023 5065 7263 		.string	"Percentages"
+ 535      656E 7461 
+ 535      6765 7300 
+ 536               		.text
+ 537               	.global	displayChoosePercentages
+ 539               	displayChoosePercentages:
+ 540               	.LFB21:
+ 111:led.c         **** }
+ 112:led.c         **** 
+ 113:led.c         **** // Function to display "Choose the percentages"
+ 114:led.c         **** void displayChoosePercentages() {
+ 541               		.loc 3 114 0
+ 542               		.cfi_startproc
+ 543               	/* prologue: function */
+ 544               	/* frame size = 0 */
+ 545               	/* stack size = 0 */
+ 546               	.L__stack_usage = 0
+ 115:led.c         ****     LCD_Clear();                 // Clear the LCD
+ 547               		.loc 3 115 0
+ 548 0198 0E94 0000 		call LCD_Clear
+ 549               	.LVL52:
+ 116:led.c         ****     LCD_String("Choose the");     // Display "Choose the" on the 1st row
+ 550               		.loc 3 116 0
+ 551 019c 80E0      		ldi r24,lo8(.LC7)
+ 552 019e 90E0      		ldi r25,hi8(.LC7)
+ 553 01a0 0E94 0000 		call LCD_String
+ 554               	.LVL53:
+ 117:led.c         ****     LCD_Command(0x80 | 0x40);     // Move cursor to 2nd row
+ 555               		.loc 3 117 0
+ 556 01a4 80EC      		ldi r24,lo8(-64)
+ 557 01a6 0E94 0000 		call LCD_Command
+ 558               	.LVL54:
+ 118:led.c         ****     LCD_String("Percentages");    // Display "percentages" on the 2nd row
+ 559               		.loc 3 118 0
+ 560 01aa 80E0      		ldi r24,lo8(.LC8)
+ 561 01ac 90E0      		ldi r25,hi8(.LC8)
+ 562 01ae 0C94 0000 		jmp LCD_String
+ 563               	.LVL55:
+ 564               		.cfi_endproc
+ 565               	.LFE21:
+ 567               		.section	.rodata.str1.1
+ 568               	.LC9:
+ 569 002f 2573 2025 		.string	"%s %d%%"
+ 569      6425 2500 
+ 570               		.text
+ 571               	.global	displayFruit
+ 573               	displayFruit:
+ 574               	.LFB22:
+ 119:led.c         **** }
+ 120:led.c         **** 
+ 121:led.c         **** // Function to display fruit name and percentage
+ 122:led.c         **** void displayFruit(char *fruit, uint8_t percentage) {
+ 575               		.loc 3 122 0
+ 576               		.cfi_startproc
+ 577               	.LVL56:
+ 578 01b2 FF92      		push r15
+ 579               	.LCFI5:
+ 580               		.cfi_def_cfa_offset 3
+ 581               		.cfi_offset 15, -2
+ 582 01b4 0F93      		push r16
+ 583               	.LCFI6:
+ 584               		.cfi_def_cfa_offset 4
+ 585               		.cfi_offset 16, -3
+ 586 01b6 1F93      		push r17
+ 587               	.LCFI7:
+ 588               		.cfi_def_cfa_offset 5
+ 589               		.cfi_offset 17, -4
+ 590 01b8 CF93      		push r28
+ 591               	.LCFI8:
+ 592               		.cfi_def_cfa_offset 6
+ 593               		.cfi_offset 28, -5
+ 594 01ba DF93      		push r29
+ 595               	.LCFI9:
+ 596               		.cfi_def_cfa_offset 7
+ 597               		.cfi_offset 29, -6
+ 598 01bc CDB7      		in r28,__SP_L__
+ 599 01be DEB7      		in r29,__SP_H__
+ 600               	.LCFI10:
+ 601               		.cfi_def_cfa_register 28
+ 602 01c0 6097      		sbiw r28,16
+ 603               	.LCFI11:
+ 604               		.cfi_def_cfa_offset 23
+ 605 01c2 0FB6      		in __tmp_reg__,__SREG__
+ 606 01c4 F894      		cli
+ 607 01c6 DEBF      		out __SP_H__,r29
+ 608 01c8 0FBE      		out __SREG__,__tmp_reg__
+ 609 01ca CDBF      		out __SP_L__,r28
+ 610               	/* prologue: function */
+ 611               	/* frame size = 16 */
+ 612               	/* stack size = 21 */
+ 613               	.L__stack_usage = 21
+ 614 01cc 182F      		mov r17,r24
+ 615 01ce 092F      		mov r16,r25
+ 616 01d0 F62E      		mov r15,r22
+ 123:led.c         ****     char buffer[16];
+ 124:led.c         ****     LCD_Clear();                 // Clear the LCD
+ 617               		.loc 3 124 0
+ 618 01d2 0E94 0000 		call LCD_Clear
+ 619               	.LVL57:
+ 125:led.c         ****     snprintf(buffer, 16, "%s %d%%", fruit, percentage);  // Format string: "Fruit Name XX%"
+ 620               		.loc 3 125 0
+ 621 01d6 1F92      		push __zero_reg__
+ 622 01d8 FF92      		push r15
+ 623 01da 0F93      		push r16
+ 624 01dc 1F93      		push r17
+ 625 01de 80E0      		ldi r24,lo8(.LC9)
+ 626 01e0 90E0      		ldi r25,hi8(.LC9)
+ 627 01e2 9F93      		push r25
+ 628 01e4 8F93      		push r24
+ 629 01e6 1F92      		push __zero_reg__
+ 630 01e8 80E1      		ldi r24,lo8(16)
+ 631 01ea 8F93      		push r24
+ 632 01ec 8E01      		movw r16,r28
+ 633 01ee 0F5F      		subi r16,-1
+ 634 01f0 1F4F      		sbci r17,-1
+ 635 01f2 1F93      		push r17
+ 636 01f4 0F93      		push r16
+ 637 01f6 0E94 0000 		call snprintf
+ 638               	.LVL58:
+ 126:led.c         ****     LCD_String(buffer);          // Display the fruit and percentage
+ 639               		.loc 3 126 0
+ 640 01fa C801      		movw r24,r16
+ 641 01fc 0E94 0000 		call LCD_String
+ 642               	.LVL59:
+ 127:led.c         **** }
+ 643               		.loc 3 127 0
+ 644 0200 0FB6      		in __tmp_reg__,__SREG__
+ 645 0202 F894      		cli
+ 646 0204 DEBF      		out __SP_H__,r29
+ 647 0206 0FBE      		out __SREG__,__tmp_reg__
+ 648 0208 CDBF      		out __SP_L__,r28
+ 649               	/* epilogue start */
+ 650 020a 6096      		adiw r28,16
+ 651 020c 0FB6      		in __tmp_reg__,__SREG__
+ 652 020e F894      		cli
+ 653 0210 DEBF      		out __SP_H__,r29
+ 654 0212 0FBE      		out __SREG__,__tmp_reg__
+ 655 0214 CDBF      		out __SP_L__,r28
+ 656 0216 DF91      		pop r29
+ 657 0218 CF91      		pop r28
+ 658 021a 1F91      		pop r17
+ 659 021c 0F91      		pop r16
+ 660 021e FF90      		pop r15
+ 661               	.LVL60:
+ 662 0220 0895      		ret
+ 663               		.cfi_endproc
+ 664               	.LFE22:
+ 666               		.section	.rodata.str1.1
+ 667               	.LC10:
+ 668 0037 596F 7572 		.string	"Your order is"
+ 668      206F 7264 
+ 668      6572 2069 
+ 668      7300 
+ 669               	.LC11:
+ 670 0045 6F6E 2074 		.string	"on the way"
+ 670      6865 2077 
+ 670      6179 00
+ 671               		.text
+ 672               	.global	displayOrderComplete
+ 674               	displayOrderComplete:
+ 675               	.LFB23:
+ 128:led.c         **** 
+ 129:led.c         **** // Function to display "Your order is" and "on the way"
+ 130:led.c         **** void displayOrderComplete() {
+ 676               		.loc 3 130 0
+ 677               		.cfi_startproc
+ 678               	/* prologue: function */
+ 679               	/* frame size = 0 */
+ 680               	/* stack size = 0 */
+ 681               	.L__stack_usage = 0
+ 131:led.c         ****     LCD_Clear();                 // Clear the LCD
+ 682               		.loc 3 131 0
+ 683 0222 0E94 0000 		call LCD_Clear
+ 684               	.LVL61:
+ 132:led.c         ****     LCD_String("Your order is");  // Display "Your order is" on the 1st row
+ 685               		.loc 3 132 0
+ 686 0226 80E0      		ldi r24,lo8(.LC10)
+ 687 0228 90E0      		ldi r25,hi8(.LC10)
+ 688 022a 0E94 0000 		call LCD_String
+ 689               	.LVL62:
+ 133:led.c         ****     LCD_Command(0x80 | 0x40);     // Move cursor to 2nd row
+ 690               		.loc 3 133 0
+ 691 022e 80EC      		ldi r24,lo8(-64)
+ 692 0230 0E94 0000 		call LCD_Command
+ 693               	.LVL63:
+ 134:led.c         ****     LCD_String("on the way");     // Display "on the way" on the 2nd row
+ 694               		.loc 3 134 0
+ 695 0234 80E0      		ldi r24,lo8(.LC11)
+ 696 0236 90E0      		ldi r25,hi8(.LC11)
+ 697 0238 0C94 0000 		jmp LCD_String
+ 698               	.LVL64:
+ 699               		.cfi_endproc
+ 700               	.LFE23:
+ 702               		.section	.rodata.str1.1
+ 703               	.LC13:
+ 704 0050 312E 2041 		.string	"1. Auto Mode"
+ 704      7574 6F20 
+ 704      4D6F 6465 
+ 704      00
+ 705               	.LC14:
+ 706 005d 322E 204D 		.string	"2. Manual Mode"
+ 706      616E 7561 
+ 706      6C20 4D6F 
+ 706      6465 00
+ 707               	.LC0:
+ 708 006c 5049 4E45 		.string	"PINEAPPLE"
+ 708      4150 504C 
+ 708      4500 
+ 709               	.LC1:
+ 710 0076 4D41 4E47 		.string	"MANGO"
+ 710      4F00 
+ 711               	.LC2:
+ 712 007c 4150 504C 		.string	"APPLE"
+ 712      4500 
+ 713               	.LC3:
+ 714 0082 4F52 414E 		.string	"ORANGE"
+ 714      4745 00
+ 715               		.section	.rodata
+ 716               	.LC12:
+ 717 0000 0000      		.word	.LC0
+ 718 0002 0000      		.word	.LC1
+ 719 0004 0000      		.word	.LC2
+ 720 0006 0000      		.word	.LC3
+ 721               		.section	.text.startup,"ax",@progbits
+ 722               	.global	main
+ 724               	main:
+ 725               	.LFB16:
+  15:led.c         ****     uint8_t button1State = 0;
+ 726               		.loc 3 15 0
+ 727               		.cfi_startproc
+ 728 0000 CF93      		push r28
+ 729               	.LCFI12:
+ 730               		.cfi_def_cfa_offset 3
+ 731               		.cfi_offset 28, -2
+ 732 0002 DF93      		push r29
+ 733               	.LCFI13:
+ 734               		.cfi_def_cfa_offset 4
+ 735               		.cfi_offset 29, -3
+ 736 0004 CDB7      		in r28,__SP_L__
+ 737 0006 DEB7      		in r29,__SP_H__
+ 738               	.LCFI14:
+ 739               		.cfi_def_cfa_register 28
+ 740 0008 2897      		sbiw r28,8
+ 741               	.LCFI15:
+ 742               		.cfi_def_cfa_offset 12
+ 743 000a 0FB6      		in __tmp_reg__,__SREG__
+ 744 000c F894      		cli
+ 745 000e DEBF      		out __SP_H__,r29
+ 746 0010 0FBE      		out __SREG__,__tmp_reg__
+ 747 0012 CDBF      		out __SP_L__,r28
+ 748               	/* prologue: function */
+ 749               	/* frame size = 8 */
+ 750               	/* stack size = 10 */
+ 751               	.L__stack_usage = 10
+ 752               	.LVL65:
+  21:led.c         **** 
+ 753               		.loc 3 21 0
+ 754 0014 88E0      		ldi r24,lo8(8)
+ 755 0016 E0E0      		ldi r30,lo8(.LC12)
+ 756 0018 F0E0      		ldi r31,hi8(.LC12)
+ 757 001a DE01      		movw r26,r28
+ 758 001c 1196      		adiw r26,1
+ 759               		0:
+ 760 001e 0190      		ld r0,Z+
+ 761 0020 0D92      		st X+,r0
+ 762 0022 8A95      		dec r24
+ 763 0024 01F4      		brne 0b
+  23:led.c         ****     LCD_Init();             // Initialize LCD
+ 764               		.loc 3 23 0
+ 765 0026 0E94 0000 		call setup
+ 766               	.LVL66:
+  24:led.c         **** 
+ 767               		.loc 3 24 0
+ 768 002a 0E94 0000 		call LCD_Init
+ 769               	.LVL67:
+  27:led.c         ****     LCD_String("1. Auto Mode");    // Write initial string on the 1st row
+ 770               		.loc 3 27 0
+ 771 002e 0E94 0000 		call LCD_Clear
+ 772               	.LVL68:
+  28:led.c         ****     LCD_Command(0x80 | 0x40);      // Move cursor to 2nd row
+ 773               		.loc 3 28 0
+ 774 0032 80E0      		ldi r24,lo8(.LC13)
+ 775 0034 90E0      		ldi r25,hi8(.LC13)
+ 776 0036 0E94 0000 		call LCD_String
+ 777               	.LVL69:
+  29:led.c         ****     LCD_String("2. Manual Mode");  // Write string on the 2nd row
+ 778               		.loc 3 29 0
+ 779 003a 80EC      		ldi r24,lo8(-64)
+ 780 003c 0E94 0000 		call LCD_Command
+ 781               	.LVL70:
+  30:led.c         ****     
+ 782               		.loc 3 30 0
+ 783 0040 80E0      		ldi r24,lo8(.LC14)
+ 784 0042 90E0      		ldi r25,hi8(.LC14)
+ 785 0044 0E94 0000 		call LCD_String
+ 786               	.LVL71:
+  20:led.c         ****     char *fruits[] = {"PINEAPPLE", "MANGO", "APPLE", "ORANGE"};
+ 787               		.loc 3 20 0
+ 788 0048 10E0      		ldi r17,0
+  19:led.c         ****     uint8_t fruitIndex = 0;  // To track which fruit to display
+ 789               		.loc 3 19 0
+ 790 004a C12C      		mov r12,__zero_reg__
+  17:led.c         ****     uint8_t button2State = 0;
+ 791               		.loc 3 17 0
+ 792 004c 00E0      		ldi r16,0
+ 793               	.LBB46:
+  49:led.c         ****             fruitIndex++;
+ 794               		.loc 3 49 0
+ 795 004e 8CEC      		ldi r24,lo8(-52)
+ 796 0050 E82E      		mov r14,r24
+ 797 0052 F12C      		mov r15,__zero_reg__
+ 798 0054 94E1      		ldi r25,lo8(20)
+ 799 0056 B92E      		mov r11,r25
+ 800               	.LVL72:
+ 801               	.L33:
+ 802               	.LBE46:
+  34:led.c         **** 
+ 803               		.loc 3 34 0
+ 804 0058 0E94 0000 		call isButton1Pressed
+ 805               	.LVL73:
+ 806 005c D82E      		mov r13,r24
+ 807               	.LVL74:
+  37:led.c         ****             // Show "Processing" and "Auto Mode"
+ 808               		.loc 3 37 0
+ 809 005e 8823      		tst r24
+ 810 0060 01F0      		breq .L30
+  37:led.c         ****             // Show "Processing" and "Auto Mode"
+ 811               		.loc 3 37 0 is_stmt 0 discriminator 1
+ 812 0062 0111      		cpse r16,__zero_reg__
+ 813 0064 00C0      		rjmp .L30
+ 814               	.LBB51:
+  39:led.c         ****             _delay_ms(300);  // Wait for 3 seconds
+ 815               		.loc 3 39 0 is_stmt 1
+ 816 0066 0E94 0000 		call displayProcessing
+ 817               	.LVL75:
+ 818               	.LBB47:
+ 819               	.LBB48:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 820               		.loc 2 187 0
+ 821 006a 2FEF      		ldi r18,lo8(959999)
+ 822 006c 85EA      		ldi r24,hi8(959999)
+ 823 006e 9EE0      		ldi r25,hlo8(959999)
+ 824 0070 2150      	1:	subi r18,1
+ 825 0072 8040      		sbci r24,0
+ 826 0074 9040      		sbci r25,0
+ 827 0076 01F4      		brne 1b
+ 828 0078 00C0      		rjmp .
+ 829 007a 0000      		nop
+ 830               	.LVL76:
+ 831               	.LBE48:
+ 832               	.LBE47:
+  43:led.c         ****             _delay_ms(300);  // Wait for 3 seconds
+ 833               		.loc 3 43 0
+ 834 007c 0E94 0000 		call displayChoosePercentages
+ 835               	.LVL77:
+ 836               	.LBB49:
+ 837               	.LBB50:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 838               		.loc 2 187 0
+ 839 0080 2FEF      		ldi r18,lo8(959999)
+ 840 0082 85EA      		ldi r24,hi8(959999)
+ 841 0084 9EE0      		ldi r25,hlo8(959999)
+ 842 0086 2150      	1:	subi r18,1
+ 843 0088 8040      		sbci r24,0
+ 844 008a 9040      		sbci r25,0
+ 845 008c 01F4      		brne 1b
+ 846 008e 00C0      		rjmp .
+ 847 0090 0000      		nop
+ 848               	.LVL78:
+ 849               	.LBE50:
+ 850               	.LBE49:
+  47:led.c         ****             uint8_t percentage = mapPotentiometer(potValue);  // Map it to percentage (0% to 100%)
+ 851               		.loc 3 47 0
+ 852 0092 8091 7800 		lds r24,120
+ 853 0096 9091 7900 		lds r25,120+1
+ 854               	.LVL79:
+  49:led.c         ****             fruitIndex++;
+ 855               		.loc 3 49 0
+ 856 009a B701      		movw r22,r14
+ 857 009c 0E94 0000 		call __udivmodhi4
+ 858               	.LVL80:
+ 859 00a0 6B9D      		mul r22,r11
+ 860 00a2 602D      		mov r22,r0
+ 861 00a4 1124      		clr r1
+ 862 00a6 FE01      		movw r30,r28
+ 863 00a8 3196      		adiw r30,1
+ 864 00aa E10F      		add r30,r17
+ 865 00ac F11D      		adc r31,__zero_reg__
+ 866 00ae E10F      		add r30,r17
+ 867 00b0 F11D      		adc r31,__zero_reg__
+ 868 00b2 8081      		ld r24,Z
+ 869 00b4 9181      		ldd r25,Z+1
+ 870 00b6 0E94 0000 		call displayFruit
+ 871               	.LVL81:
+  50:led.c         ****         }
+ 872               		.loc 3 50 0
+ 873 00ba 1F5F      		subi r17,lo8(-(1))
+ 874               	.LVL82:
+ 875               	.L30:
+ 876               	.LBE51:
+  55:led.c         **** 
+ 877               		.loc 3 55 0
+ 878 00bc 0E94 0000 		call isButton2Pressed
+ 879               	.LVL83:
+ 880 00c0 082F      		mov r16,r24
+ 881               	.LVL84:
+  58:led.c         ****             if (fruitIndex < 4) {
+ 882               		.loc 3 58 0
+ 883 00c2 8823      		tst r24
+ 884 00c4 01F0      		breq .L31
+  58:led.c         ****             if (fruitIndex < 4) {
+ 885               		.loc 3 58 0 is_stmt 0 discriminator 1
+ 886 00c6 C110      		cpse r12,__zero_reg__
+ 887 00c8 00C0      		rjmp .L31
+  59:led.c         ****                 // Show next fruit
+ 888               		.loc 3 59 0 is_stmt 1
+ 889 00ca 1430      		cpi r17,lo8(4)
+ 890 00cc 00F4      		brsh .L32
+ 891               	.LBB52:
+  61:led.c         ****                 uint8_t percentage = mapPotentiometer(potValue);  // Map it to percentage (0% to 10
+ 892               		.loc 3 61 0
+ 893 00ce 8091 7800 		lds r24,120
+ 894 00d2 9091 7900 		lds r25,120+1
+ 895               	.LVL85:
+  63:led.c         ****                 fruitIndex++;
+ 896               		.loc 3 63 0
+ 897 00d6 B701      		movw r22,r14
+ 898 00d8 0E94 0000 		call __udivmodhi4
+ 899               	.LVL86:
+ 900 00dc 6B9D      		mul r22,r11
+ 901 00de 602D      		mov r22,r0
+ 902 00e0 1124      		clr r1
+ 903 00e2 FE01      		movw r30,r28
+ 904 00e4 3196      		adiw r30,1
+ 905 00e6 E10F      		add r30,r17
+ 906 00e8 F11D      		adc r31,__zero_reg__
+ 907 00ea E10F      		add r30,r17
+ 908 00ec F11D      		adc r31,__zero_reg__
+ 909 00ee 8081      		ld r24,Z
+ 910 00f0 9181      		ldd r25,Z+1
+ 911 00f2 0E94 0000 		call displayFruit
+ 912               	.LVL87:
+  64:led.c         ****             } else {
+ 913               		.loc 3 64 0
+ 914 00f6 1F5F      		subi r17,lo8(-(1))
+ 915               	.LVL88:
+ 916               	.LBE52:
+ 917 00f8 00C0      		rjmp .L31
+ 918               	.L32:
+  67:led.c         ****                 fruitIndex = 0;  // Reset the fruit index
+ 919               		.loc 3 67 0
+ 920 00fa 0E94 0000 		call displayOrderComplete
+ 921               	.LVL89:
+  68:led.c         ****             }
+ 922               		.loc 3 68 0
+ 923 00fe 10E0      		ldi r17,0
+ 924               	.LVL90:
+ 925               	.L31:
+ 926               	.LBB53:
+ 927               	.LBB54:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 928               		.loc 2 187 0
+ 929 0100 2FEF      		ldi r18,lo8(319999)
+ 930 0102 81EE      		ldi r24,hi8(319999)
+ 931 0104 94E0      		ldi r25,hlo8(319999)
+ 932 0106 2150      	1:	subi r18,1
+ 933 0108 8040      		sbci r24,0
+ 934 010a 9040      		sbci r25,0
+ 935 010c 01F4      		brne 1b
+ 936 010e 00C0      		rjmp .
+ 937 0110 0000      		nop
+ 938               	.LBE54:
+ 939               	.LBE53:
+  55:led.c         **** 
+ 940               		.loc 3 55 0
+ 941 0112 C02E      		mov r12,r16
+  34:led.c         **** 
+ 942               		.loc 3 34 0
+ 943 0114 0D2D      		mov r16,r13
+ 944               	.LVL91:
+ 945 0116 00C0      		rjmp .L33
+ 946               		.cfi_endproc
+ 947               	.LFE16:
+ 949               		.text
+ 950               	.global	mapPotentiometer
+ 952               	mapPotentiometer:
+ 953               	.LFB24:
+ 135:led.c         **** }
+ 136:led.c         **** 
+ 137:led.c         **** // Function to map potentiometer value (0-1023) to percentage (0-100%)
+ 138:led.c         **** uint8_t mapPotentiometer(uint16_t value) {
+ 954               		.loc 3 138 0
+ 955               		.cfi_startproc
+ 956               	.LVL92:
+ 957               	/* prologue: function */
+ 958               	/* frame size = 0 */
+ 959               	/* stack size = 0 */
+ 960               	.L__stack_usage = 0
+ 139:led.c         ****     return (value / 204) * 20;  // Map 0-1023 to 0%, 20%, 40%, ..., 100%
+ 961               		.loc 3 139 0
+ 962 023c 6CEC      		ldi r22,lo8(-52)
+ 963 023e 70E0      		ldi r23,0
+ 964 0240 0E94 0000 		call __udivmodhi4
+ 965               	.LVL93:
+ 140:led.c         **** }
+ 966               		.loc 3 140 0
+ 967 0244 84E1      		ldi r24,lo8(20)
+ 968 0246 869F      		mul r24,r22
+ 969 0248 802D      		mov r24,r0
+ 970 024a 1124      		clr r1
+ 971 024c 0895      		ret
+ 972               		.cfi_endproc
+ 973               	.LFE24:
+ 975               	.Letext0:
+ 976               		.file 4 "/usr/lib/avr/include/stdint.h"
+ 977               		.file 5 "<built-in>"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 led.c
+     /tmp/cchV7ia1.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cchV7ia1.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cchV7ia1.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cchV7ia1.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cchV7ia1.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cchV7ia1.s:12     .text:0000000000000000 I2C_Init
+     /tmp/cchV7ia1.s:35     .text:0000000000000012 I2C_Start
+     /tmp/cchV7ia1.s:59     .text:0000000000000022 I2C_Stop
+     /tmp/cchV7ia1.s:90     .text:0000000000000036 I2C_Write
+     /tmp/cchV7ia1.s:133    .text:000000000000005c LCD_EnablePulse
+     /tmp/cchV7ia1.s:189    .text:0000000000000086 LCD_Command
+     /tmp/cchV7ia1.s:238    .text:00000000000000b2 LCD_Char
+     /tmp/cchV7ia1.s:287    .text:00000000000000de LCD_Init
+     /tmp/cchV7ia1.s:351    .text:0000000000000120 LCD_String
+     /tmp/cchV7ia1.s:394    .text:0000000000000138 LCD_Clear
+     /tmp/cchV7ia1.s:424    .text:000000000000014c setup
+     /tmp/cchV7ia1.s:453    .text:0000000000000162 isButton1Pressed
+     /tmp/cchV7ia1.s:475    .text:0000000000000170 isButton2Pressed
+     /tmp/cchV7ia1.s:503    .text:000000000000017e displayProcessing
+     /tmp/cchV7ia1.s:539    .text:0000000000000198 displayChoosePercentages
+     /tmp/cchV7ia1.s:573    .text:00000000000001b2 displayFruit
+     /tmp/cchV7ia1.s:674    .text:0000000000000222 displayOrderComplete
+     /tmp/cchV7ia1.s:724    .text.startup:0000000000000000 main
+     /tmp/cchV7ia1.s:952    .text:000000000000023c mapPotentiometer
+
+UNDEFINED SYMBOLS
+snprintf
+__udivmodhi4
+__do_copy_data
