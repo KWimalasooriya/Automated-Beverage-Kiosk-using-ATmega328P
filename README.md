@@ -54,7 +54,10 @@ Hygienic peristaltic pumps + intuitive UI = **consistent pours every time**.
 ---
 
 ## 📸 Demo & Photos
-> _(Add images or GIFs of your build here)_
+![1755073851704](https://github.com/user-attachments/assets/5923cfc7-f75a-42b6-8223-2a71134d3e94)
+
+![1755073851216](https://github.com/user-attachments/assets/47191f61-56c8-4301-8277-7b7451c2180b)
+
 
 ---
 
