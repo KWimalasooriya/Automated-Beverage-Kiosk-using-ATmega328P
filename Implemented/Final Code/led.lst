@@ -1,0 +1,3004 @@
+   1               		.file	"led.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   7               		.text
+   8               	.Ltext0:
+   9               		.cfi_sections	.debug_frame
+  10               	.global	i2c_init
+  12               	i2c_init:
+  13               	.LFB6:
+  14               		.file 1 "LCD.h"
+   1:LCD.h         **** #ifndef LCD_H
+   2:LCD.h         **** #define LCD_H
+   3:LCD.h         **** 
+   4:LCD.h         **** #include <avr/io.h>
+   5:LCD.h         **** #include <util/delay.h>
+   6:LCD.h         **** #include <compat/twi.h>
+   7:LCD.h         **** 
+   8:LCD.h         **** // LCD I2C address (usually 0x27 or 0x3F depending on your module)
+   9:LCD.h         **** #define LCD_I2C_ADDRESS 0x27
+  10:LCD.h         **** 
+  11:LCD.h         **** // LCD Control bits
+  12:LCD.h         **** #define LCD_BACKLIGHT 0x08  // On
+  13:LCD.h         **** #define LCD_ENABLE    0x04  // Enable bit
+  14:LCD.h         **** #define LCD_RW        0x02  // Read/Write bit
+  15:LCD.h         **** #define LCD_RS        0x01  // Register select bit
+  16:LCD.h         **** 
+  17:LCD.h         **** // I2C initialization
+  18:LCD.h         **** void i2c_init(void) {
+  15               		.loc 1 18 0
+  16               		.cfi_startproc
+  17               	/* prologue: function */
+  18               	/* frame size = 0 */
+  19               	/* stack size = 0 */
+  20               	.L__stack_usage = 0
+  19:LCD.h         ****     TWSR = 0x00; // Set prescaler bits to 0
+  21               		.loc 1 19 0
+  22 0000 1092 B900 		sts 185,__zero_reg__
+  20:LCD.h         ****     TWBR = 0x0C; // SCL frequency is 400kHz with 16MHz clock
+  23               		.loc 1 20 0
+  24 0004 8CE0      		ldi r24,lo8(12)
+  25 0006 8093 B800 		sts 184,r24
+  21:LCD.h         ****     TWCR = (1 << TWEN); // Enable TWI (I2C)
+  26               		.loc 1 21 0
+  27 000a 84E0      		ldi r24,lo8(4)
+  28 000c 8093 BC00 		sts 188,r24
+  29 0010 0895      		ret
+  30               		.cfi_endproc
+  31               	.LFE6:
+  33               	.global	i2c_start
+  35               	i2c_start:
+  36               	.LFB7:
+  22:LCD.h         **** }
+  23:LCD.h         **** 
+  24:LCD.h         **** // Send START condition on I2C
+  25:LCD.h         **** void i2c_start(void) {
+  37               		.loc 1 25 0
+  38               		.cfi_startproc
+  39               	/* prologue: function */
+  40               	/* frame size = 0 */
+  41               	/* stack size = 0 */
+  42               	.L__stack_usage = 0
+  26:LCD.h         ****     TWCR = (1 << TWSTA) | (1 << TWEN) | (1 << TWINT); // Send START condition
+  43               		.loc 1 26 0
+  44 0012 84EA      		ldi r24,lo8(-92)
+  45 0014 8093 BC00 		sts 188,r24
+  46               	.L3:
+  27:LCD.h         ****     while (!(TWCR & (1 << TWINT))); // Wait for START to be transmitted
+  47               		.loc 1 27 0 discriminator 1
+  48 0018 8091 BC00 		lds r24,188
+  49 001c 87FF      		sbrs r24,7
+  50 001e 00C0      		rjmp .L3
+  51               	/* epilogue start */
+  28:LCD.h         **** }
+  52               		.loc 1 28 0
+  53 0020 0895      		ret
+  54               		.cfi_endproc
+  55               	.LFE7:
+  57               	.global	i2c_stop
+  59               	i2c_stop:
+  60               	.LFB8:
+  29:LCD.h         **** 
+  30:LCD.h         **** // Send STOP condition on I2C
+  31:LCD.h         **** void i2c_stop(void) {
+  61               		.loc 1 31 0
+  62               		.cfi_startproc
+  63               	/* prologue: function */
+  64               	/* frame size = 0 */
+  65               	/* stack size = 0 */
+  66               	.L__stack_usage = 0
+  32:LCD.h         ****     TWCR = (1 << TWSTO) | (1 << TWEN) | (1 << TWINT); // Send STOP condition
+  67               		.loc 1 32 0
+  68 0022 84E9      		ldi r24,lo8(-108)
+  69 0024 8093 BC00 		sts 188,r24
+  70 0028 0895      		ret
+  71               		.cfi_endproc
+  72               	.LFE8:
+  74               	.global	i2c_write
+  76               	i2c_write:
+  77               	.LFB9:
+  33:LCD.h         **** }
+  34:LCD.h         **** 
+  35:LCD.h         **** // Write data to I2C
+  36:LCD.h         **** void i2c_write(uint8_t data) {
+  78               		.loc 1 36 0
+  79               		.cfi_startproc
+  80               	.LVL0:
+  81               	/* prologue: function */
+  82               	/* frame size = 0 */
+  83               	/* stack size = 0 */
+  84               	.L__stack_usage = 0
+  37:LCD.h         ****     TWDR = data; // Load data to data register
+  85               		.loc 1 37 0
+  86 002a 8093 BB00 		sts 187,r24
+  38:LCD.h         ****     TWCR = (1 << TWEN) | (1 << TWINT); // Start transmission of data
+  87               		.loc 1 38 0
+  88 002e 84E8      		ldi r24,lo8(-124)
+  89               	.LVL1:
+  90 0030 8093 BC00 		sts 188,r24
+  91               	.LVL2:
+  92               	.L8:
+  39:LCD.h         ****     while (!(TWCR & (1 << TWINT))); // Wait for data to be transmitted
+  93               		.loc 1 39 0 discriminator 1
+  94 0034 8091 BC00 		lds r24,188
+  95 0038 87FF      		sbrs r24,7
+  96 003a 00C0      		rjmp .L8
+  97               	/* epilogue start */
+  40:LCD.h         **** }
+  98               		.loc 1 40 0
+  99 003c 0895      		ret
+ 100               		.cfi_endproc
+ 101               	.LFE9:
+ 103               	.global	lcd_enable
+ 105               	lcd_enable:
+ 106               	.LFB10:
+  41:LCD.h         **** 
+  42:LCD.h         **** // Enable data transmission to LCD
+  43:LCD.h         **** void lcd_enable(uint8_t data) {
+ 107               		.loc 1 43 0
+ 108               		.cfi_startproc
+ 109               	.LVL3:
+ 110 003e CF93      		push r28
+ 111               	.LCFI0:
+ 112               		.cfi_def_cfa_offset 3
+ 113               		.cfi_offset 28, -2
+ 114               	/* prologue: function */
+ 115               	/* frame size = 0 */
+ 116               	/* stack size = 1 */
+ 117               	.L__stack_usage = 1
+ 118 0040 C82F      		mov r28,r24
+  44:LCD.h         ****     i2c_start();
+ 119               		.loc 1 44 0
+ 120 0042 0E94 0000 		call i2c_start
+ 121               	.LVL4:
+  45:LCD.h         ****     i2c_write(LCD_I2C_ADDRESS << 1); // Send address with write bit
+ 122               		.loc 1 45 0
+ 123 0046 8EE4      		ldi r24,lo8(78)
+ 124 0048 0E94 0000 		call i2c_write
+ 125               	.LVL5:
+  46:LCD.h         ****     i2c_write(data | LCD_ENABLE);    // Send data with enable bit set
+ 126               		.loc 1 46 0
+ 127 004c 8C2F      		mov r24,r28
+ 128 004e 8460      		ori r24,lo8(4)
+ 129 0050 0E94 0000 		call i2c_write
+ 130               	.LVL6:
+ 131               	.LBB51:
+ 132               	.LBB52:
+ 133               		.file 2 "/usr/lib/avr/include/util/delay.h"
+   1:/usr/lib/avr/include/util/delay.h **** /* Copyright (c) 2002, Marek Michalkiewicz
+   2:/usr/lib/avr/include/util/delay.h ****    Copyright (c) 2004,2005,2007 Joerg Wunsch
+   3:/usr/lib/avr/include/util/delay.h ****    Copyright (c) 2007  Florin-Viorel Petrov
+   4:/usr/lib/avr/include/util/delay.h ****    All rights reserved.
+   5:/usr/lib/avr/include/util/delay.h **** 
+   6:/usr/lib/avr/include/util/delay.h ****    Redistribution and use in source and binary forms, with or without
+   7:/usr/lib/avr/include/util/delay.h ****    modification, are permitted provided that the following conditions are met:
+   8:/usr/lib/avr/include/util/delay.h **** 
+   9:/usr/lib/avr/include/util/delay.h ****    * Redistributions of source code must retain the above copyright
+  10:/usr/lib/avr/include/util/delay.h ****      notice, this list of conditions and the following disclaimer.
+  11:/usr/lib/avr/include/util/delay.h **** 
+  12:/usr/lib/avr/include/util/delay.h ****    * Redistributions in binary form must reproduce the above copyright
+  13:/usr/lib/avr/include/util/delay.h ****      notice, this list of conditions and the following disclaimer in
+  14:/usr/lib/avr/include/util/delay.h ****      the documentation and/or other materials provided with the
+  15:/usr/lib/avr/include/util/delay.h ****      distribution.
+  16:/usr/lib/avr/include/util/delay.h **** 
+  17:/usr/lib/avr/include/util/delay.h ****    * Neither the name of the copyright holders nor the names of
+  18:/usr/lib/avr/include/util/delay.h ****      contributors may be used to endorse or promote products derived
+  19:/usr/lib/avr/include/util/delay.h ****      from this software without specific prior written permission.
+  20:/usr/lib/avr/include/util/delay.h **** 
+  21:/usr/lib/avr/include/util/delay.h ****   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  22:/usr/lib/avr/include/util/delay.h ****   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  23:/usr/lib/avr/include/util/delay.h ****   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  24:/usr/lib/avr/include/util/delay.h ****   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  25:/usr/lib/avr/include/util/delay.h ****   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  26:/usr/lib/avr/include/util/delay.h ****   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  27:/usr/lib/avr/include/util/delay.h ****   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  28:/usr/lib/avr/include/util/delay.h ****   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  29:/usr/lib/avr/include/util/delay.h ****   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  30:/usr/lib/avr/include/util/delay.h ****   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  31:/usr/lib/avr/include/util/delay.h ****   POSSIBILITY OF SUCH DAMAGE. */
+  32:/usr/lib/avr/include/util/delay.h **** 
+  33:/usr/lib/avr/include/util/delay.h **** /* $Id$ */
+  34:/usr/lib/avr/include/util/delay.h **** 
+  35:/usr/lib/avr/include/util/delay.h **** #ifndef _UTIL_DELAY_H_
+  36:/usr/lib/avr/include/util/delay.h **** #define _UTIL_DELAY_H_ 1
+  37:/usr/lib/avr/include/util/delay.h **** 
+  38:/usr/lib/avr/include/util/delay.h **** #ifndef __DOXYGEN__
+  39:/usr/lib/avr/include/util/delay.h **** #  ifndef __HAS_DELAY_CYCLES
+  40:/usr/lib/avr/include/util/delay.h **** #    define __HAS_DELAY_CYCLES 1
+  41:/usr/lib/avr/include/util/delay.h **** #  endif
+  42:/usr/lib/avr/include/util/delay.h **** #endif  /* __DOXYGEN__ */
+  43:/usr/lib/avr/include/util/delay.h **** 
+  44:/usr/lib/avr/include/util/delay.h **** #include <inttypes.h>
+  45:/usr/lib/avr/include/util/delay.h **** #include <util/delay_basic.h>
+  46:/usr/lib/avr/include/util/delay.h **** #include <math.h>
+  47:/usr/lib/avr/include/util/delay.h **** 
+  48:/usr/lib/avr/include/util/delay.h **** /** \file */
+  49:/usr/lib/avr/include/util/delay.h **** /** \defgroup util_delay <util/delay.h>: Convenience functions for busy-wait delay loops
+  50:/usr/lib/avr/include/util/delay.h ****     \code
+  51:/usr/lib/avr/include/util/delay.h ****     #define F_CPU 1000000UL  // 1 MHz
+  52:/usr/lib/avr/include/util/delay.h ****     //#define F_CPU 14.7456E6
+  53:/usr/lib/avr/include/util/delay.h ****     #include <util/delay.h>
+  54:/usr/lib/avr/include/util/delay.h ****     \endcode
+  55:/usr/lib/avr/include/util/delay.h **** 
+  56:/usr/lib/avr/include/util/delay.h ****     \note As an alternative method, it is possible to pass the
+  57:/usr/lib/avr/include/util/delay.h ****     F_CPU macro down to the compiler from the Makefile.
+  58:/usr/lib/avr/include/util/delay.h ****     Obviously, in that case, no \c \#define statement should be
+  59:/usr/lib/avr/include/util/delay.h ****     used.
+  60:/usr/lib/avr/include/util/delay.h **** 
+  61:/usr/lib/avr/include/util/delay.h ****     The functions in this header file are wrappers around the basic
+  62:/usr/lib/avr/include/util/delay.h ****     busy-wait functions from <util/delay_basic.h>.  They are meant as
+  63:/usr/lib/avr/include/util/delay.h ****     convenience functions where actual time values can be specified
+  64:/usr/lib/avr/include/util/delay.h ****     rather than a number of cycles to wait for.  The idea behind is
+  65:/usr/lib/avr/include/util/delay.h ****     that compile-time constant expressions will be eliminated by
+  66:/usr/lib/avr/include/util/delay.h ****     compiler optimization so floating-point expressions can be used
+  67:/usr/lib/avr/include/util/delay.h ****     to calculate the number of delay cycles needed based on the CPU
+  68:/usr/lib/avr/include/util/delay.h ****     frequency passed by the macro F_CPU.
+  69:/usr/lib/avr/include/util/delay.h **** 
+  70:/usr/lib/avr/include/util/delay.h ****     \note In order for these functions to work as intended, compiler
+  71:/usr/lib/avr/include/util/delay.h ****     optimizations <em>must</em> be enabled, and the delay time
+  72:/usr/lib/avr/include/util/delay.h ****     <em>must</em> be an expression that is a known constant at
+  73:/usr/lib/avr/include/util/delay.h ****     compile-time.  If these requirements are not met, the resulting
+  74:/usr/lib/avr/include/util/delay.h ****     delay will be much longer (and basically unpredictable), and
+  75:/usr/lib/avr/include/util/delay.h ****     applications that otherwise do not use floating-point calculations
+  76:/usr/lib/avr/include/util/delay.h ****     will experience severe code bloat by the floating-point library
+  77:/usr/lib/avr/include/util/delay.h ****     routines linked into the application.
+  78:/usr/lib/avr/include/util/delay.h **** 
+  79:/usr/lib/avr/include/util/delay.h ****     The functions available allow the specification of microsecond, and
+  80:/usr/lib/avr/include/util/delay.h ****     millisecond delays directly, using the application-supplied macro
+  81:/usr/lib/avr/include/util/delay.h ****     F_CPU as the CPU clock frequency (in Hertz).
+  82:/usr/lib/avr/include/util/delay.h **** 
+  83:/usr/lib/avr/include/util/delay.h **** */
+  84:/usr/lib/avr/include/util/delay.h **** 
+  85:/usr/lib/avr/include/util/delay.h **** #if !defined(__DOXYGEN__)
+  86:/usr/lib/avr/include/util/delay.h **** static __inline__ void _delay_us(double __us) __attribute__((__always_inline__));
+  87:/usr/lib/avr/include/util/delay.h **** static __inline__ void _delay_ms(double __ms) __attribute__((__always_inline__));
+  88:/usr/lib/avr/include/util/delay.h **** #endif
+  89:/usr/lib/avr/include/util/delay.h **** 
+  90:/usr/lib/avr/include/util/delay.h **** #ifndef F_CPU
+  91:/usr/lib/avr/include/util/delay.h **** /* prevent compiler error by supplying a default */
+  92:/usr/lib/avr/include/util/delay.h **** # warning "F_CPU not defined for <util/delay.h>"
+  93:/usr/lib/avr/include/util/delay.h **** /** \ingroup util_delay
+  94:/usr/lib/avr/include/util/delay.h ****     \def F_CPU
+  95:/usr/lib/avr/include/util/delay.h ****     \brief CPU frequency in Hz
+  96:/usr/lib/avr/include/util/delay.h **** 
+  97:/usr/lib/avr/include/util/delay.h ****     The macro F_CPU specifies the CPU frequency to be considered by
+  98:/usr/lib/avr/include/util/delay.h ****     the delay macros.  This macro is normally supplied by the
+  99:/usr/lib/avr/include/util/delay.h ****     environment (e.g. from within a project header, or the project's
+ 100:/usr/lib/avr/include/util/delay.h ****     Makefile).  The value 1 MHz here is only provided as a "vanilla"
+ 101:/usr/lib/avr/include/util/delay.h ****     fallback if no such user-provided definition could be found.
+ 102:/usr/lib/avr/include/util/delay.h **** 
+ 103:/usr/lib/avr/include/util/delay.h ****     In terms of the delay functions, the CPU frequency can be given as
+ 104:/usr/lib/avr/include/util/delay.h ****     a floating-point constant (e.g. 3.6864E6 for 3.6864 MHz).
+ 105:/usr/lib/avr/include/util/delay.h ****     However, the macros in <util/setbaud.h> require it to be an
+ 106:/usr/lib/avr/include/util/delay.h ****     integer value.
+ 107:/usr/lib/avr/include/util/delay.h ****  */
+ 108:/usr/lib/avr/include/util/delay.h **** # define F_CPU 1000000UL
+ 109:/usr/lib/avr/include/util/delay.h **** #endif
+ 110:/usr/lib/avr/include/util/delay.h **** 
+ 111:/usr/lib/avr/include/util/delay.h **** #ifndef __OPTIMIZE__
+ 112:/usr/lib/avr/include/util/delay.h **** # warning "Compiler optimizations disabled; functions from <util/delay.h> won't work as designed"
+ 113:/usr/lib/avr/include/util/delay.h **** #endif
+ 114:/usr/lib/avr/include/util/delay.h **** 
+ 115:/usr/lib/avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+ 116:/usr/lib/avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+ 117:/usr/lib/avr/include/util/delay.h ****   __STDC_HOSTED__
+ 118:/usr/lib/avr/include/util/delay.h **** #  include <math.h>
+ 119:/usr/lib/avr/include/util/delay.h **** #endif
+ 120:/usr/lib/avr/include/util/delay.h **** 
+ 121:/usr/lib/avr/include/util/delay.h **** /**
+ 122:/usr/lib/avr/include/util/delay.h ****    \ingroup util_delay
+ 123:/usr/lib/avr/include/util/delay.h **** 
+ 124:/usr/lib/avr/include/util/delay.h ****    Perform a delay of \c __ms milliseconds, using _delay_loop_2().
+ 125:/usr/lib/avr/include/util/delay.h **** 
+ 126:/usr/lib/avr/include/util/delay.h ****    The macro F_CPU is supposed to be defined to a
+ 127:/usr/lib/avr/include/util/delay.h ****    constant defining the CPU clock frequency (in Hertz).
+ 128:/usr/lib/avr/include/util/delay.h **** 
+ 129:/usr/lib/avr/include/util/delay.h ****    The maximal possible delay is 262.14 ms / F_CPU in MHz.
+ 130:/usr/lib/avr/include/util/delay.h **** 
+ 131:/usr/lib/avr/include/util/delay.h ****    When the user request delay which exceed the maximum possible one,
+ 132:/usr/lib/avr/include/util/delay.h ****    _delay_ms() provides a decreased resolution functionality. In this
+ 133:/usr/lib/avr/include/util/delay.h ****    mode _delay_ms() will work with a resolution of 1/10 ms, providing
+ 134:/usr/lib/avr/include/util/delay.h ****    delays up to 6.5535 seconds (independent from CPU frequency).  The
+ 135:/usr/lib/avr/include/util/delay.h ****    user will not be informed about decreased resolution.
+ 136:/usr/lib/avr/include/util/delay.h **** 
+ 137:/usr/lib/avr/include/util/delay.h ****    If the avr-gcc toolchain has __builtin_avr_delay_cycles()
+ 138:/usr/lib/avr/include/util/delay.h ****    support, maximal possible delay is 4294967.295 ms/ F_CPU in MHz. For
+ 139:/usr/lib/avr/include/util/delay.h ****    values greater than the maximal possible delay, overflows results in
+ 140:/usr/lib/avr/include/util/delay.h ****    no delay i.e., 0ms.
+ 141:/usr/lib/avr/include/util/delay.h **** 
+ 142:/usr/lib/avr/include/util/delay.h ****    Conversion of \c __ms into clock cycles may not always result in
+ 143:/usr/lib/avr/include/util/delay.h ****    integer.  By default, the clock cycles rounded up to next
+ 144:/usr/lib/avr/include/util/delay.h ****    integer. This ensures that the user gets at least \c __ms
+ 145:/usr/lib/avr/include/util/delay.h ****    microseconds of delay.
+ 146:/usr/lib/avr/include/util/delay.h **** 
+ 147:/usr/lib/avr/include/util/delay.h ****    Alternatively, by defining the macro \c __DELAY_ROUND_DOWN__, or
+ 148:/usr/lib/avr/include/util/delay.h ****    \c __DELAY_ROUND_CLOSEST__, before including this header file, the
+ 149:/usr/lib/avr/include/util/delay.h ****    algorithm can be made to round down, or round to closest integer,
+ 150:/usr/lib/avr/include/util/delay.h ****    respectively.
+ 151:/usr/lib/avr/include/util/delay.h **** 
+ 152:/usr/lib/avr/include/util/delay.h ****    \note
+ 153:/usr/lib/avr/include/util/delay.h **** 
+ 154:/usr/lib/avr/include/util/delay.h ****    The implementation of _delay_ms() based on
+ 155:/usr/lib/avr/include/util/delay.h ****    __builtin_avr_delay_cycles() is not backward compatible with older
+ 156:/usr/lib/avr/include/util/delay.h ****    implementations.  In order to get functionality backward compatible
+ 157:/usr/lib/avr/include/util/delay.h ****    with previous versions, the macro \c "__DELAY_BACKWARD_COMPATIBLE__"
+ 158:/usr/lib/avr/include/util/delay.h ****    must be defined before including this header file. Also, the
+ 159:/usr/lib/avr/include/util/delay.h ****    backward compatible algorithm will be chosen if the code is
+ 160:/usr/lib/avr/include/util/delay.h ****    compiled in a <em>freestanding environment</em> (GCC option
+ 161:/usr/lib/avr/include/util/delay.h ****    \c -ffreestanding), as the math functions required for rounding are
+ 162:/usr/lib/avr/include/util/delay.h ****    not available to the compiler then.
+ 163:/usr/lib/avr/include/util/delay.h **** 
+ 164:/usr/lib/avr/include/util/delay.h ****  */
+ 165:/usr/lib/avr/include/util/delay.h **** void
+ 166:/usr/lib/avr/include/util/delay.h **** _delay_ms(double __ms)
+ 167:/usr/lib/avr/include/util/delay.h **** {
+ 168:/usr/lib/avr/include/util/delay.h **** 	double __tmp ;
+ 169:/usr/lib/avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+ 170:/usr/lib/avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+ 171:/usr/lib/avr/include/util/delay.h ****   __STDC_HOSTED__
+ 172:/usr/lib/avr/include/util/delay.h **** 	uint32_t __ticks_dc;
+ 173:/usr/lib/avr/include/util/delay.h **** 	extern void __builtin_avr_delay_cycles(unsigned long);
+ 174:/usr/lib/avr/include/util/delay.h **** 	__tmp = ((F_CPU) / 1e3) * __ms;
+ 175:/usr/lib/avr/include/util/delay.h **** 
+ 176:/usr/lib/avr/include/util/delay.h **** 	#if defined(__DELAY_ROUND_DOWN__)
+ 177:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)fabs(__tmp);
+ 178:/usr/lib/avr/include/util/delay.h **** 
+ 179:/usr/lib/avr/include/util/delay.h **** 	#elif defined(__DELAY_ROUND_CLOSEST__)
+ 180:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(fabs(__tmp)+0.5);
+ 181:/usr/lib/avr/include/util/delay.h **** 
+ 182:/usr/lib/avr/include/util/delay.h **** 	#else
+ 183:/usr/lib/avr/include/util/delay.h **** 		//round up by default
+ 184:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+ 185:/usr/lib/avr/include/util/delay.h **** 	#endif
+ 186:/usr/lib/avr/include/util/delay.h **** 
+ 187:/usr/lib/avr/include/util/delay.h **** 	__builtin_avr_delay_cycles(__ticks_dc);
+ 188:/usr/lib/avr/include/util/delay.h **** 
+ 189:/usr/lib/avr/include/util/delay.h **** #else
+ 190:/usr/lib/avr/include/util/delay.h **** 	uint16_t __ticks;
+ 191:/usr/lib/avr/include/util/delay.h **** 	__tmp = ((F_CPU) / 4e3) * __ms;
+ 192:/usr/lib/avr/include/util/delay.h **** 	if (__tmp < 1.0)
+ 193:/usr/lib/avr/include/util/delay.h **** 		__ticks = 1;
+ 194:/usr/lib/avr/include/util/delay.h **** 	else if (__tmp > 65535)
+ 195:/usr/lib/avr/include/util/delay.h **** 	{
+ 196:/usr/lib/avr/include/util/delay.h **** 		//	__ticks = requested delay in 1/10 ms
+ 197:/usr/lib/avr/include/util/delay.h **** 		__ticks = (uint16_t) (__ms * 10.0);
+ 198:/usr/lib/avr/include/util/delay.h **** 		while(__ticks)
+ 199:/usr/lib/avr/include/util/delay.h **** 		{
+ 200:/usr/lib/avr/include/util/delay.h **** 			// wait 1/10 ms
+ 201:/usr/lib/avr/include/util/delay.h **** 			_delay_loop_2(((F_CPU) / 4e3) / 10);
+ 202:/usr/lib/avr/include/util/delay.h **** 			__ticks --;
+ 203:/usr/lib/avr/include/util/delay.h **** 		}
+ 204:/usr/lib/avr/include/util/delay.h **** 		return;
+ 205:/usr/lib/avr/include/util/delay.h **** 	}
+ 206:/usr/lib/avr/include/util/delay.h **** 	else
+ 207:/usr/lib/avr/include/util/delay.h **** 		__ticks = (uint16_t)__tmp;
+ 208:/usr/lib/avr/include/util/delay.h **** 	_delay_loop_2(__ticks);
+ 209:/usr/lib/avr/include/util/delay.h **** #endif
+ 210:/usr/lib/avr/include/util/delay.h **** }
+ 211:/usr/lib/avr/include/util/delay.h **** 
+ 212:/usr/lib/avr/include/util/delay.h **** /**
+ 213:/usr/lib/avr/include/util/delay.h ****    \ingroup util_delay
+ 214:/usr/lib/avr/include/util/delay.h **** 
+ 215:/usr/lib/avr/include/util/delay.h ****    Perform a delay of \c __us microseconds, using _delay_loop_1().
+ 216:/usr/lib/avr/include/util/delay.h **** 
+ 217:/usr/lib/avr/include/util/delay.h ****    The macro F_CPU is supposed to be defined to a
+ 218:/usr/lib/avr/include/util/delay.h ****    constant defining the CPU clock frequency (in Hertz).
+ 219:/usr/lib/avr/include/util/delay.h **** 
+ 220:/usr/lib/avr/include/util/delay.h ****    The maximal possible delay is 768 us / F_CPU in MHz.
+ 221:/usr/lib/avr/include/util/delay.h **** 
+ 222:/usr/lib/avr/include/util/delay.h ****    If the user requests a delay greater than the maximal possible one,
+ 223:/usr/lib/avr/include/util/delay.h ****    _delay_us() will automatically call _delay_ms() instead.  The user
+ 224:/usr/lib/avr/include/util/delay.h ****    will not be informed about this case.
+ 225:/usr/lib/avr/include/util/delay.h **** 
+ 226:/usr/lib/avr/include/util/delay.h ****    If the avr-gcc toolchain has __builtin_avr_delay_cycles()
+ 227:/usr/lib/avr/include/util/delay.h ****    support, maximal possible delay is 4294967.295 us/ F_CPU in MHz. For
+ 228:/usr/lib/avr/include/util/delay.h ****    values greater than the maximal possible delay, overflow results in
+ 229:/usr/lib/avr/include/util/delay.h ****    no delay i.e., 0us.
+ 230:/usr/lib/avr/include/util/delay.h **** 
+ 231:/usr/lib/avr/include/util/delay.h ****    Conversion of \c __us into clock cycles may not always result in
+ 232:/usr/lib/avr/include/util/delay.h ****    integer.  By default, the clock cycles rounded up to next
+ 233:/usr/lib/avr/include/util/delay.h ****    integer. This ensures that the user gets at least \c __us
+ 234:/usr/lib/avr/include/util/delay.h ****    microseconds of delay.
+ 235:/usr/lib/avr/include/util/delay.h **** 
+ 236:/usr/lib/avr/include/util/delay.h ****    Alternatively, by defining the macro \c __DELAY_ROUND_DOWN__, or
+ 237:/usr/lib/avr/include/util/delay.h ****    \c __DELAY_ROUND_CLOSEST__, before including this header file, the
+ 238:/usr/lib/avr/include/util/delay.h ****    algorithm can be made to round down, or round to closest integer,
+ 239:/usr/lib/avr/include/util/delay.h ****    respectively.
+ 240:/usr/lib/avr/include/util/delay.h **** 
+ 241:/usr/lib/avr/include/util/delay.h ****    \note
+ 242:/usr/lib/avr/include/util/delay.h **** 
+ 243:/usr/lib/avr/include/util/delay.h ****    The implementation of _delay_ms() based on
+ 244:/usr/lib/avr/include/util/delay.h ****    __builtin_avr_delay_cycles() is not backward compatible with older
+ 245:/usr/lib/avr/include/util/delay.h ****    implementations.  In order to get functionality backward compatible
+ 246:/usr/lib/avr/include/util/delay.h ****    with previous versions, the macro \c __DELAY_BACKWARD_COMPATIBLE__
+ 247:/usr/lib/avr/include/util/delay.h ****    must be defined before including this header file. Also, the
+ 248:/usr/lib/avr/include/util/delay.h ****    backward compatible algorithm will be chosen if the code is
+ 249:/usr/lib/avr/include/util/delay.h ****    compiled in a <em>freestanding environment</em> (GCC option
+ 250:/usr/lib/avr/include/util/delay.h ****    \c -ffreestanding), as the math functions required for rounding are
+ 251:/usr/lib/avr/include/util/delay.h ****    not available to the compiler then.
+ 252:/usr/lib/avr/include/util/delay.h **** 
+ 253:/usr/lib/avr/include/util/delay.h ****  */
+ 254:/usr/lib/avr/include/util/delay.h **** void
+ 255:/usr/lib/avr/include/util/delay.h **** _delay_us(double __us)
+ 256:/usr/lib/avr/include/util/delay.h **** {
+ 257:/usr/lib/avr/include/util/delay.h **** 	double __tmp ;
+ 258:/usr/lib/avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+ 259:/usr/lib/avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+ 260:/usr/lib/avr/include/util/delay.h ****   __STDC_HOSTED__
+ 261:/usr/lib/avr/include/util/delay.h **** 	uint32_t __ticks_dc;
+ 262:/usr/lib/avr/include/util/delay.h **** 	extern void __builtin_avr_delay_cycles(unsigned long);
+ 263:/usr/lib/avr/include/util/delay.h **** 	__tmp = ((F_CPU) / 1e6) * __us;
+ 264:/usr/lib/avr/include/util/delay.h **** 
+ 265:/usr/lib/avr/include/util/delay.h **** 	#if defined(__DELAY_ROUND_DOWN__)
+ 266:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)fabs(__tmp);
+ 267:/usr/lib/avr/include/util/delay.h **** 
+ 268:/usr/lib/avr/include/util/delay.h **** 	#elif defined(__DELAY_ROUND_CLOSEST__)
+ 269:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(fabs(__tmp)+0.5);
+ 270:/usr/lib/avr/include/util/delay.h **** 
+ 271:/usr/lib/avr/include/util/delay.h **** 	#else
+ 272:/usr/lib/avr/include/util/delay.h **** 		//round up by default
+ 273:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+ 274:/usr/lib/avr/include/util/delay.h **** 	#endif
+ 275:/usr/lib/avr/include/util/delay.h **** 
+ 276:/usr/lib/avr/include/util/delay.h **** 	__builtin_avr_delay_cycles(__ticks_dc);
+ 134               		.loc 2 276 0
+ 135 0054 85E0      		ldi r24,lo8(5)
+ 136 0056 8A95      	1:	dec r24
+ 137 0058 01F4      		brne 1b
+ 138 005a 0000      		nop
+ 139               	.LVL7:
+ 140               	.LBE52:
+ 141               	.LBE51:
+  47:LCD.h         ****     _delay_us(1);
+  48:LCD.h         ****     i2c_write(data & ~LCD_ENABLE);   // Clear enable bit
+ 142               		.loc 1 48 0
+ 143 005c 8C2F      		mov r24,r28
+ 144 005e 8B7F      		andi r24,lo8(-5)
+ 145 0060 0E94 0000 		call i2c_write
+ 146               	.LVL8:
+ 147               	.LBB53:
+ 148               	.LBB54:
+ 149               		.loc 2 276 0
+ 150 0064 87EC      		ldi r24,lo8(199)
+ 151 0066 90E0      		ldi r25,hi8(199)
+ 152 0068 0197      	1:	sbiw r24,1
+ 153 006a 01F4      		brne 1b
+ 154 006c 00C0      		rjmp .
+ 155 006e 0000      		nop
+ 156               	.LVL9:
+ 157               	.LBE54:
+ 158               	.LBE53:
+ 159               	.LBB55:
+ 160               	.LBB56:
+  32:LCD.h         **** }
+ 161               		.loc 1 32 0
+ 162 0070 84E9      		ldi r24,lo8(-108)
+ 163 0072 8093 BC00 		sts 188,r24
+ 164               	/* epilogue start */
+ 165               	.LBE56:
+ 166               	.LBE55:
+  49:LCD.h         ****     _delay_us(50);
+  50:LCD.h         ****     i2c_stop();
+  51:LCD.h         **** }
+ 167               		.loc 1 51 0
+ 168 0076 CF91      		pop r28
+ 169               	.LVL10:
+ 170 0078 0895      		ret
+ 171               		.cfi_endproc
+ 172               	.LFE10:
+ 174               	.global	lcd_send
+ 176               	lcd_send:
+ 177               	.LFB11:
+  52:LCD.h         **** 
+  53:LCD.h         **** // Send data/command to the LCD
+  54:LCD.h         **** void lcd_send(uint8_t data, uint8_t mode) {
+ 178               		.loc 1 54 0
+ 179               		.cfi_startproc
+ 180               	.LVL11:
+ 181 007a CF93      		push r28
+ 182               	.LCFI1:
+ 183               		.cfi_def_cfa_offset 3
+ 184               		.cfi_offset 28, -2
+ 185 007c DF93      		push r29
+ 186               	.LCFI2:
+ 187               		.cfi_def_cfa_offset 4
+ 188               		.cfi_offset 29, -3
+ 189               	/* prologue: function */
+ 190               	/* frame size = 0 */
+ 191               	/* stack size = 2 */
+ 192               	.L__stack_usage = 2
+ 193 007e C82F      		mov r28,r24
+ 194 0080 D62F      		mov r29,r22
+ 195 0082 D860      		ori r29,lo8(8)
+ 196               	.LVL12:
+  55:LCD.h         ****     uint8_t highNibble = (data & 0xF0) | mode | LCD_BACKLIGHT;
+  56:LCD.h         ****     uint8_t lowNibble = ((data << 4) & 0xF0) | mode | LCD_BACKLIGHT;
+  57:LCD.h         ****     
+  58:LCD.h         ****     lcd_enable(highNibble);
+ 197               		.loc 1 58 0
+ 198 0084 807F      		andi r24,lo8(-16)
+ 199               	.LVL13:
+ 200 0086 8D2B      		or r24,r29
+ 201               	.LVL14:
+ 202 0088 0E94 0000 		call lcd_enable
+ 203               	.LVL15:
+  59:LCD.h         ****     lcd_enable(lowNibble);
+ 204               		.loc 1 59 0
+ 205 008c 20E1      		ldi r18,lo8(16)
+ 206 008e C29F      		mul r28,r18
+ 207 0090 C001      		movw r24,r0
+ 208 0092 1124      		clr __zero_reg__
+ 209 0094 8D2B      		or r24,r29
+ 210               	/* epilogue start */
+  60:LCD.h         **** }
+ 211               		.loc 1 60 0
+ 212 0096 DF91      		pop r29
+ 213               	.LVL16:
+ 214 0098 CF91      		pop r28
+ 215               	.LVL17:
+  59:LCD.h         ****     lcd_enable(lowNibble);
+ 216               		.loc 1 59 0
+ 217 009a 0C94 0000 		jmp lcd_enable
+ 218               	.LVL18:
+ 219               		.cfi_endproc
+ 220               	.LFE11:
+ 222               	.global	lcd_command
+ 224               	lcd_command:
+ 225               	.LFB12:
+  61:LCD.h         **** 
+  62:LCD.h         **** // Send command to the LCD
+  63:LCD.h         **** void lcd_command(uint8_t cmd) {
+ 226               		.loc 1 63 0
+ 227               		.cfi_startproc
+ 228               	.LVL19:
+ 229               	/* prologue: function */
+ 230               	/* frame size = 0 */
+ 231               	/* stack size = 0 */
+ 232               	.L__stack_usage = 0
+  64:LCD.h         ****     lcd_send(cmd, 0);
+ 233               		.loc 1 64 0
+ 234 009e 60E0      		ldi r22,0
+ 235 00a0 0C94 0000 		jmp lcd_send
+ 236               	.LVL20:
+ 237               		.cfi_endproc
+ 238               	.LFE12:
+ 240               	.global	lcd_print
+ 242               	lcd_print:
+ 243               	.LFB13:
+  65:LCD.h         **** }
+  66:LCD.h         **** 	
+  67:LCD.h         **** // Print string on the LCD
+  68:LCD.h         **** void lcd_print(char *str) {
+ 244               		.loc 1 68 0
+ 245               		.cfi_startproc
+ 246               	.LVL21:
+ 247 00a4 CF93      		push r28
+ 248               	.LCFI3:
+ 249               		.cfi_def_cfa_offset 3
+ 250               		.cfi_offset 28, -2
+ 251 00a6 DF93      		push r29
+ 252               	.LCFI4:
+ 253               		.cfi_def_cfa_offset 4
+ 254               		.cfi_offset 29, -3
+ 255               	/* prologue: function */
+ 256               	/* frame size = 0 */
+ 257               	/* stack size = 2 */
+ 258               	.L__stack_usage = 2
+ 259 00a8 EC01      		movw r28,r24
+ 260               	.LVL22:
+ 261               	.L14:
+  69:LCD.h         ****     while (*str) {
+ 262               		.loc 1 69 0
+ 263 00aa 8991      		ld r24,Y+
+ 264               	.LVL23:
+ 265 00ac 8823      		tst r24
+ 266 00ae 01F0      		breq .L16
+  70:LCD.h         ****         lcd_send(*str, LCD_RS);
+ 267               		.loc 1 70 0
+ 268 00b0 61E0      		ldi r22,lo8(1)
+ 269 00b2 0E94 0000 		call lcd_send
+ 270               	.LVL24:
+ 271 00b6 00C0      		rjmp .L14
+ 272               	.LVL25:
+ 273               	.L16:
+ 274               	/* epilogue start */
+  71:LCD.h         ****         str++;
+  72:LCD.h         ****     }
+  73:LCD.h         **** }
+ 275               		.loc 1 73 0
+ 276 00b8 DF91      		pop r29
+ 277 00ba CF91      		pop r28
+ 278               	.LVL26:
+ 279 00bc 0895      		ret
+ 280               		.cfi_endproc
+ 281               	.LFE13:
+ 283               	.global	lcd_clear
+ 285               	lcd_clear:
+ 286               	.LFB14:
+  74:LCD.h         **** 
+  75:LCD.h         **** // Clear the LCD screen
+  76:LCD.h         **** void lcd_clear(void) {
+ 287               		.loc 1 76 0
+ 288               		.cfi_startproc
+ 289               	/* prologue: function */
+ 290               	/* frame size = 0 */
+ 291               	/* stack size = 0 */
+ 292               	.L__stack_usage = 0
+  77:LCD.h         ****     lcd_command(0x01); // Clear display command
+ 293               		.loc 1 77 0
+ 294 00be 81E0      		ldi r24,lo8(1)
+ 295 00c0 0E94 0000 		call lcd_command
+ 296               	.LVL27:
+ 297               	.LBB57:
+ 298               	.LBB58:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 299               		.loc 2 187 0
+ 300 00c4 8FE3      		ldi r24,lo8(7999)
+ 301 00c6 9FE1      		ldi r25,hi8(7999)
+ 302 00c8 0197      	1:	sbiw r24,1
+ 303 00ca 01F4      		brne 1b
+ 304 00cc 00C0      		rjmp .
+ 305 00ce 0000      		nop
+ 306               	.LVL28:
+ 307 00d0 0895      		ret
+ 308               	.LBE58:
+ 309               	.LBE57:
+ 310               		.cfi_endproc
+ 311               	.LFE14:
+ 313               		.section	.rodata
+ 314               	.LC0:
+ 315 0000 00        		.byte	0
+ 316 0001 40        		.byte	64
+ 317 0002 14        		.byte	20
+ 318 0003 54        		.byte	84
+ 319               		.text
+ 320               	.global	lcd_setCursor
+ 322               	lcd_setCursor:
+ 323               	.LFB15:
+  78:LCD.h         ****     _delay_ms(2);      // Wait for the command to execute
+  79:LCD.h         **** }
+  80:LCD.h         **** 
+  81:LCD.h         **** // Set cursor position on the LCD
+  82:LCD.h         **** void lcd_setCursor(uint8_t col, uint8_t row) {
+ 324               		.loc 1 82 0
+ 325               		.cfi_startproc
+ 326               	.LVL29:
+ 327 00d2 0F93      		push r16
+ 328               	.LCFI5:
+ 329               		.cfi_def_cfa_offset 3
+ 330               		.cfi_offset 16, -2
+ 331 00d4 1F93      		push r17
+ 332               	.LCFI6:
+ 333               		.cfi_def_cfa_offset 4
+ 334               		.cfi_offset 17, -3
+ 335 00d6 CF93      		push r28
+ 336               	.LCFI7:
+ 337               		.cfi_def_cfa_offset 5
+ 338               		.cfi_offset 28, -4
+ 339 00d8 DF93      		push r29
+ 340               	.LCFI8:
+ 341               		.cfi_def_cfa_offset 6
+ 342               		.cfi_offset 29, -5
+ 343 00da 00D0      		rcall .
+ 344 00dc 00D0      		rcall .
+ 345               	.LCFI9:
+ 346               		.cfi_def_cfa_offset 10
+ 347 00de CDB7      		in r28,__SP_L__
+ 348 00e0 DEB7      		in r29,__SP_H__
+ 349               	.LCFI10:
+ 350               		.cfi_def_cfa_register 28
+ 351               	/* prologue: function */
+ 352               	/* frame size = 4 */
+ 353               	/* stack size = 8 */
+ 354               	.L__stack_usage = 8
+  83:LCD.h         ****     uint8_t row_offsets[] = {0x00, 0x40, 0x14, 0x54};
+ 355               		.loc 1 83 0
+ 356 00e2 0091 0000 		lds r16,.LC0
+ 357 00e6 1091 0000 		lds r17,.LC0+1
+ 358 00ea 2091 0000 		lds r18,.LC0+2
+ 359 00ee 3091 0000 		lds r19,.LC0+3
+ 360 00f2 0983      		std Y+1,r16
+ 361 00f4 1A83      		std Y+2,r17
+ 362 00f6 2B83      		std Y+3,r18
+ 363 00f8 3C83      		std Y+4,r19
+  84:LCD.h         ****     lcd_command(0x80 | (col + row_offsets[row]));  // Set DDRAM address
+ 364               		.loc 1 84 0
+ 365 00fa FE01      		movw r30,r28
+ 366 00fc E60F      		add r30,r22
+ 367 00fe F11D      		adc r31,__zero_reg__
+ 368 0100 9181      		ldd r25,Z+1
+ 369 0102 890F      		add r24,r25
+ 370               	.LVL30:
+ 371 0104 8068      		ori r24,lo8(-128)
+ 372               	/* epilogue start */
+  85:LCD.h         **** }
+ 373               		.loc 1 85 0
+ 374 0106 0F90      		pop __tmp_reg__
+ 375 0108 0F90      		pop __tmp_reg__
+ 376 010a 0F90      		pop __tmp_reg__
+ 377 010c 0F90      		pop __tmp_reg__
+ 378 010e DF91      		pop r29
+ 379 0110 CF91      		pop r28
+ 380 0112 1F91      		pop r17
+ 381 0114 0F91      		pop r16
+  84:LCD.h         ****     lcd_command(0x80 | (col + row_offsets[row]));  // Set DDRAM address
+ 382               		.loc 1 84 0
+ 383 0116 0C94 0000 		jmp lcd_command
+ 384               	.LVL31:
+ 385               		.cfi_endproc
+ 386               	.LFE15:
+ 388               	.global	initialize
+ 390               	initialize:
+ 391               	.LFB16:
+  86:LCD.h         **** 
+  87:LCD.h         **** // Initialize the LCD
+  88:LCD.h         **** void initialize(void) {
+ 392               		.loc 1 88 0
+ 393               		.cfi_startproc
+ 394               	/* prologue: function */
+ 395               	/* frame size = 0 */
+ 396               	/* stack size = 0 */
+ 397               	.L__stack_usage = 0
+ 398               	.LVL32:
+ 399               	.LBB59:
+ 400               	.LBB60:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 401               		.loc 2 187 0
+ 402 011a 2FEF      		ldi r18,lo8(159999)
+ 403 011c 80E7      		ldi r24,hi8(159999)
+ 404 011e 92E0      		ldi r25,hlo8(159999)
+ 405 0120 2150      	1:	subi r18,1
+ 406 0122 8040      		sbci r24,0
+ 407 0124 9040      		sbci r25,0
+ 408 0126 01F4      		brne 1b
+ 409 0128 00C0      		rjmp .
+ 410 012a 0000      		nop
+ 411               	.LVL33:
+ 412               	.LBE60:
+ 413               	.LBE59:
+  89:LCD.h         ****     _delay_ms(50);        // Wait for LCD to power up
+  90:LCD.h         ****     lcd_command(0x02);    // Initialize in 4-bit mode
+ 414               		.loc 1 90 0
+ 415 012c 82E0      		ldi r24,lo8(2)
+ 416 012e 0E94 0000 		call lcd_command
+ 417               	.LVL34:
+  91:LCD.h         ****     lcd_command(0x28);    // 2 line, 5x7 matrix
+ 418               		.loc 1 91 0
+ 419 0132 88E2      		ldi r24,lo8(40)
+ 420 0134 0E94 0000 		call lcd_command
+ 421               	.LVL35:
+  92:LCD.h         ****     lcd_command(0x0C);    // Display on, cursor off
+ 422               		.loc 1 92 0
+ 423 0138 8CE0      		ldi r24,lo8(12)
+ 424 013a 0E94 0000 		call lcd_command
+ 425               	.LVL36:
+  93:LCD.h         ****     lcd_command(0x06);    // Increment cursor
+ 426               		.loc 1 93 0
+ 427 013e 86E0      		ldi r24,lo8(6)
+ 428 0140 0E94 0000 		call lcd_command
+ 429               	.LVL37:
+  94:LCD.h         ****     lcd_clear();          // Clear display
+ 430               		.loc 1 94 0
+ 431 0144 0C94 0000 		jmp lcd_clear
+ 432               	.LVL38:
+ 433               		.cfi_endproc
+ 434               	.LFE16:
+ 436               	.global	isSwitch1Pressed
+ 438               	isSwitch1Pressed:
+ 439               	.LFB20:
+ 440               		.file 3 "led.c"
+   1:led.c         **** #define F_CPU 16000000
+   2:led.c         **** #include <avr/io.h>
+   3:led.c         **** #include <avr/interrupt.h>
+   4:led.c         **** #include <util/delay.h>
+   5:led.c         **** #include "LCD.h"
+   6:led.c         **** 
+   7:led.c         **** // Function prototypes
+   8:led.c         **** void setup();
+   9:led.c         **** uint8_t isSwitch1Pressed();
+  10:led.c         **** uint8_t isSwitch2Pressed();
+  11:led.c         **** uint8_t isSwitch3Pressed();  // New function prototype for Switch 3
+  12:led.c         **** uint8_t isEncoderPressed();
+  13:led.c         **** void displayModes();
+  14:led.c         **** void displayProcessing();
+  15:led.c         **** void displayChoosePercentages();
+  16:led.c         **** void displayExceed100();
+  17:led.c         **** void displayFruitinAuto(char *fruit, uint8_t percentage);
+  18:led.c         **** void displayFruitinManual(char *fruit);
+  19:led.c         **** void displayOrderComplete();
+  20:led.c         **** void displayEnjoyDrink();
+  21:led.c         **** void turnOnMotor(uint8_t motor, uint8_t percentage);
+  22:led.c         **** void turnOffMotors();
+  23:led.c         **** int8_t readEncoder();
+  24:led.c         **** void checkPercentageSum();
+  25:led.c         **** void interruptSwitch();
+  26:led.c         **** uint8_t isEncoderPressed();
+  27:led.c         **** uint16_t getDelayForPercentage(uint8_t percentage);
+  28:led.c         **** void manualMode();  // Function prototype for manual mode
+  29:led.c         **** void autoSelection();
+  30:led.c         **** // Variables
+  31:led.c         **** char *fruits[] = {"PINEAPPLE", "MANGO", "APPLE", "ORANGE"};
+  32:led.c         **** uint8_t fruitIndex = 0;
+  33:led.c         **** uint8_t percentages[4] = {0, 0, 0, 0};  // Array to store percentages for each fruit
+  34:led.c         **** uint8_t percentage = 0;
+  35:led.c         **** uint8_t selectingPercentage = 0;
+  36:led.c         **** uint8_t switch1Pressed = 0;
+  37:led.c         **** 
+  38:led.c         **** volatile uint8_t stopManualMode = 0;  // Flag for stopping manual mode
+  39:led.c         **** 
+  40:led.c         **** int main(void) {
+  41:led.c         ****     setup();  // Initialize pins
+  42:led.c         ****     initialize();  // Initialize LCD
+  43:led.c         **** 
+  44:led.c         ****     while (1) {
+  45:led.c         ****         displayModes();  // Display mode selection at the start
+  46:led.c         **** 
+  47:led.c         ****         // Wait for Switch 1 (PC0) press
+  48:led.c         ****         while (!isSwitch1Pressed()) {
+  49:led.c         ****             // Check if Switch 2 (PC1) is pressed for Manual Mode
+  50:led.c         ****             if (isSwitch2Pressed()) {
+  51:led.c         ****                 // Disable Switches for Manual Mode
+  52:led.c         ****                 switch1Pressed = 1;  // Disable Switch 1
+  53:led.c         ****                 manualMode();        // Go to Manual Mode
+  54:led.c         ****             }
+  55:led.c         ****         }
+  56:led.c         **** 
+  57:led.c         ****         // Disable Switch 1 after the first press
+  58:led.c         ****         switch1Pressed = 1;
+  59:led.c         **** 
+  60:led.c         ****         // Display "Processing.." and other startup messages
+  61:led.c         ****         displayProcessing();
+  62:led.c         ****         _delay_ms(4000);
+  63:led.c         **** 
+  64:led.c         ****         displayChoosePercentages();
+  65:led.c         ****         _delay_ms(4000);
+  66:led.c         **** 
+  67:led.c         ****         lcd_clear();
+  68:led.c         ****         lcd_setCursor(0, 0);
+  69:led.c         ****         lcd_print("Total should not");
+  70:led.c         ****         lcd_setCursor(0, 1);
+  71:led.c         ****         lcd_print("exceed 100%");
+  72:led.c         ****         _delay_ms(4000);
+  73:led.c         **** 
+  74:led.c         ****         // Begin the fruit and percentage selection process
+  75:led.c         ****         displayFruitinAuto(fruits[fruitIndex], percentage);
+  76:led.c         ****         selectingPercentage = 1;  // Enable percentage selection
+  77:led.c         **** 	autoSelection();
+  78:led.c         ****     }
+  79:led.c         ****     return 0;
+  80:led.c         **** }
+  81:led.c         **** 
+  82:led.c         **** 
+  83:led.c         **** void autoSelection(){
+  84:led.c         ****         while (1) {
+  85:led.c         ****             if (selectingPercentage) {
+  86:led.c         ****                 // Read the rotary encoder to adjust the percentage
+  87:led.c         ****                 int8_t rotation = readEncoder();
+  88:led.c         ****                 if (rotation > 0 && percentage < 100) {
+  89:led.c         ****                     percentage += 20;
+  90:led.c         ****                     displayFruitinAuto(fruits[fruitIndex], percentage);  // Update the displayed pe
+  91:led.c         ****                 } else if (rotation < 0 && percentage > 0) {
+  92:led.c         ****                     percentage -= 20;
+  93:led.c         ****                     displayFruitinAuto(fruits[fruitIndex], percentage);  // Update the displayed pe
+  94:led.c         ****                 }
+  95:led.c         **** 
+  96:led.c         ****                 // Check if the rotary encoder switch is pressed to confirm the percentage and move
+  97:led.c         ****                 if (isSwitch3Pressed()) {
+  98:led.c         ****                     _delay_ms(50); // Debounce delay
+  99:led.c         ****                     if (isSwitch3Pressed()) { // Confirm switch press after delay
+ 100:led.c         ****                         percentages[fruitIndex] = percentage;  // Store the selected percentage
+ 101:led.c         ****                         fruitIndex++;  // Move to the next fruit
+ 102:led.c         **** 
+ 103:led.c         ****                         if (fruitIndex < 4) {
+ 104:led.c         ****                             percentage = 0;  // Reset percentage for the next fruit
+ 105:led.c         ****                             displayFruitinAuto(fruits[fruitIndex], percentage);  // Display next fr
+ 106:led.c         ****                         } else {
+ 107:led.c         ****                             selectingPercentage = 0;  // Disable encoder
+ 108:led.c         ****                             checkPercentageSum();  // Check if total exceeds 100
+ 109:led.c         ****                             break;  // Exit the inner loop
+ 110:led.c         ****                         }
+ 111:led.c         ****                     }
+ 112:led.c         ****                 }
+ 113:led.c         ****             }
+ 114:led.c         ****             _delay_ms(50);  // Small delay for debouncing
+ 115:led.c         ****         }
+ 116:led.c         **** }
+ 117:led.c         **** 
+ 118:led.c         **** // Function to set up the button and encoder pins
+ 119:led.c         **** void setup() {
+ 120:led.c         ****     // Set PC0 (Switch 1) as input
+ 121:led.c         ****     DDRC &= ~(1 << PC0);
+ 122:led.c         ****     PORTC |= (1 << PC0);  // Enable pull-up resistor on PC0
+ 123:led.c         **** 
+ 124:led.c         ****     // Set PC1 (Switch 2) as input
+ 125:led.c         ****     DDRC &= ~(1 << PC1);
+ 126:led.c         ****     PORTC |= (1 << PC1);  // Enable pull-up resistor on PC1
+ 127:led.c         **** 
+ 128:led.c         ****     // Set PC2 (Switch 3) as input with interrupt
+ 129:led.c         ****     DDRC &= ~(1 << PC2);
+ 130:led.c         ****     PORTC |= (1 << PC2);  // Enable pull-up resistor on PC2
+ 131:led.c         ****     PCICR |= (1 << PCIE1);  // Enable PCINT1 (Group of pins PC0, PC1, PC2)
+ 132:led.c         ****     PCMSK1 |= (1 << PC2);   // Enable interrupt on PC2
+ 133:led.c         **** 
+ 134:led.c         ****     // Set rotary encoder pins as input
+ 135:led.c         ****     DDRB &= ~(1 << PB1);  // Set PB1 (CLK) as input
+ 136:led.c         ****     DDRB &= ~(1 << PB2);  // Set PB2 (DT) as input
+ 137:led.c         ****     DDRB &= ~(1 << PB3);  // Set PB3 (SW) as input
+ 138:led.c         ****     PORTB |= (1 << PB1) | (1 << PB2) | (1 << PB3);  // Enable pull-up resistors for encoder
+ 139:led.c         **** 
+ 140:led.c         ****     // Set relay control pins as output (assuming PORTD)
+ 141:led.c         ****     DDRD |= (1 << PD0) | (1 << PD1) | (1 << PD2) | (1 << PD3);  // Example pins for motors
+ 142:led.c         ****     turnOffMotors();  // Ensure motors are off initially
+ 143:led.c         **** 
+ 144:led.c         ****     // Enable global interrupts
+ 145:led.c         ****     sei();
+ 146:led.c         **** }
+ 147:led.c         **** 
+ 148:led.c         **** // Function to check if Switch 1 (PC0) is pressed
+ 149:led.c         **** uint8_t isSwitch1Pressed() {
+ 441               		.loc 3 149 0
+ 442               		.cfi_startproc
+ 443               	/* prologue: function */
+ 444               	/* frame size = 0 */
+ 445               	/* stack size = 0 */
+ 446               	.L__stack_usage = 0
+ 150:led.c         ****     return !(PINC & (1 << PC0));
+ 447               		.loc 3 150 0
+ 448 0148 86B1      		in r24,0x6
+ 449 014a 8095      		com r24
+ 151:led.c         **** }
+ 450               		.loc 3 151 0
+ 451 014c 8170      		andi r24,lo8(1)
+ 452 014e 0895      		ret
+ 453               		.cfi_endproc
+ 454               	.LFE20:
+ 456               	.global	isSwitch2Pressed
+ 458               	isSwitch2Pressed:
+ 459               	.LFB21:
+ 152:led.c         **** 
+ 153:led.c         **** // Function to check if Switch 2 (PC1) is pressed
+ 154:led.c         **** uint8_t isSwitch2Pressed() {
+ 460               		.loc 3 154 0
+ 461               		.cfi_startproc
+ 462               	/* prologue: function */
+ 463               	/* frame size = 0 */
+ 464               	/* stack size = 0 */
+ 465               	.L__stack_usage = 0
+ 155:led.c         ****     return !(PINC & (1 << PC1));
+ 466               		.loc 3 155 0
+ 467 0150 86B1      		in r24,0x6
+ 468 0152 8695      		lsr r24
+ 469 0154 8170      		andi r24,1
+ 156:led.c         **** }
+ 470               		.loc 3 156 0
+ 471 0156 91E0      		ldi r25,lo8(1)
+ 472 0158 8927      		eor r24,r25
+ 473 015a 0895      		ret
+ 474               		.cfi_endproc
+ 475               	.LFE21:
+ 477               	.global	isSwitch3Pressed
+ 479               	isSwitch3Pressed:
+ 480               	.LFB22:
+ 157:led.c         **** 
+ 158:led.c         **** // Function to check if Switch 3 (PC2) is pressed
+ 159:led.c         **** uint8_t isSwitch3Pressed() {
+ 481               		.loc 3 159 0
+ 482               		.cfi_startproc
+ 483               	/* prologue: function */
+ 484               	/* frame size = 0 */
+ 485               	/* stack size = 0 */
+ 486               	.L__stack_usage = 0
+ 160:led.c         ****     return !(PINC & (1 << PC2));
+ 487               		.loc 3 160 0
+ 488 015c 86B1      		in r24,0x6
+ 489 015e 82FB      		bst r24,2
+ 490 0160 8827      		clr r24
+ 491 0162 80F9      		bld r24,0
+ 161:led.c         **** }
+ 492               		.loc 3 161 0
+ 493 0164 91E0      		ldi r25,lo8(1)
+ 494 0166 8927      		eor r24,r25
+ 495 0168 0895      		ret
+ 496               		.cfi_endproc
+ 497               	.LFE22:
+ 499               	.global	isEncoderPressed
+ 501               	isEncoderPressed:
+ 502               	.LFB23:
+ 162:led.c         **** 
+ 163:led.c         **** uint8_t isEncoderPressed(){
+ 503               		.loc 3 163 0
+ 504               		.cfi_startproc
+ 505               	/* prologue: function */
+ 506               	/* frame size = 0 */
+ 507               	/* stack size = 0 */
+ 508               	.L__stack_usage = 0
+ 164:led.c         ****     return !(PINB & (1 << PB2));
+ 509               		.loc 3 164 0
+ 510 016a 83B1      		in r24,0x3
+ 511 016c 82FB      		bst r24,2
+ 512 016e 8827      		clr r24
+ 513 0170 80F9      		bld r24,0
+ 165:led.c         **** }
+ 514               		.loc 3 165 0
+ 515 0172 91E0      		ldi r25,lo8(1)
+ 516 0174 8927      		eor r24,r25
+ 517 0176 0895      		ret
+ 518               		.cfi_endproc
+ 519               	.LFE23:
+ 521               		.section	.rodata.str1.1,"aMS",@progbits,1
+ 522               	.LC1:
+ 523 0000 312E 2041 		.string	"1. Auto Mode"
+ 523      7574 6F20 
+ 523      4D6F 6465 
+ 523      00
+ 524               	.LC2:
+ 525 000d 322E 204D 		.string	"2. Manual Mode"
+ 525      616E 7561 
+ 525      6C20 4D6F 
+ 525      6465 00
+ 526               		.text
+ 527               	.global	displayModes
+ 529               	displayModes:
+ 530               	.LFB24:
+ 166:led.c         **** 
+ 167:led.c         **** // Function to display mode selection
+ 168:led.c         **** void displayModes() {
+ 531               		.loc 3 168 0
+ 532               		.cfi_startproc
+ 533               	/* prologue: function */
+ 534               	/* frame size = 0 */
+ 535               	/* stack size = 0 */
+ 536               	.L__stack_usage = 0
+ 169:led.c         ****     lcd_clear();
+ 537               		.loc 3 169 0
+ 538 0178 0E94 0000 		call lcd_clear
+ 539               	.LVL39:
+ 170:led.c         ****     lcd_setCursor(0, 0);
+ 540               		.loc 3 170 0
+ 541 017c 60E0      		ldi r22,0
+ 542 017e 80E0      		ldi r24,0
+ 543 0180 0E94 0000 		call lcd_setCursor
+ 544               	.LVL40:
+ 171:led.c         ****     lcd_print("1. Auto Mode");
+ 545               		.loc 3 171 0
+ 546 0184 80E0      		ldi r24,lo8(.LC1)
+ 547 0186 90E0      		ldi r25,hi8(.LC1)
+ 548 0188 0E94 0000 		call lcd_print
+ 549               	.LVL41:
+ 172:led.c         ****     lcd_setCursor(0, 1);
+ 550               		.loc 3 172 0
+ 551 018c 61E0      		ldi r22,lo8(1)
+ 552 018e 80E0      		ldi r24,0
+ 553 0190 0E94 0000 		call lcd_setCursor
+ 554               	.LVL42:
+ 173:led.c         ****     lcd_print("2. Manual Mode");
+ 555               		.loc 3 173 0
+ 556 0194 80E0      		ldi r24,lo8(.LC2)
+ 557 0196 90E0      		ldi r25,hi8(.LC2)
+ 558 0198 0C94 0000 		jmp lcd_print
+ 559               	.LVL43:
+ 560               		.cfi_endproc
+ 561               	.LFE24:
+ 563               		.section	.rodata.str1.1
+ 564               	.LC3:
+ 565 001c 5072 6F63 		.string	"Processing"
+ 565      6573 7369 
+ 565      6E67 00
+ 566               	.LC4:
+ 567 0027 4175 746F 		.string	"Auto Mode..."
+ 567      204D 6F64 
+ 567      652E 2E2E 
+ 567      00
+ 568               		.text
+ 569               	.global	displayProcessing
+ 571               	displayProcessing:
+ 572               	.LFB25:
+ 174:led.c         **** }
+ 175:led.c         **** 
+ 176:led.c         **** // Function to display "Processing.." message for 4 seconds
+ 177:led.c         **** void displayProcessing() {
+ 573               		.loc 3 177 0
+ 574               		.cfi_startproc
+ 575               	/* prologue: function */
+ 576               	/* frame size = 0 */
+ 577               	/* stack size = 0 */
+ 578               	.L__stack_usage = 0
+ 178:led.c         ****     lcd_clear();
+ 579               		.loc 3 178 0
+ 580 019c 0E94 0000 		call lcd_clear
+ 581               	.LVL44:
+ 179:led.c         ****     lcd_setCursor(0, 0);
+ 582               		.loc 3 179 0
+ 583 01a0 60E0      		ldi r22,0
+ 584 01a2 80E0      		ldi r24,0
+ 585 01a4 0E94 0000 		call lcd_setCursor
+ 586               	.LVL45:
+ 180:led.c         ****     lcd_print("Processing");
+ 587               		.loc 3 180 0
+ 588 01a8 80E0      		ldi r24,lo8(.LC3)
+ 589 01aa 90E0      		ldi r25,hi8(.LC3)
+ 590 01ac 0E94 0000 		call lcd_print
+ 591               	.LVL46:
+ 181:led.c         ****     lcd_setCursor(0, 1);
+ 592               		.loc 3 181 0
+ 593 01b0 61E0      		ldi r22,lo8(1)
+ 594 01b2 80E0      		ldi r24,0
+ 595 01b4 0E94 0000 		call lcd_setCursor
+ 596               	.LVL47:
+ 182:led.c         ****     lcd_print("Auto Mode...");
+ 597               		.loc 3 182 0
+ 598 01b8 80E0      		ldi r24,lo8(.LC4)
+ 599 01ba 90E0      		ldi r25,hi8(.LC4)
+ 600 01bc 0C94 0000 		jmp lcd_print
+ 601               	.LVL48:
+ 602               		.cfi_endproc
+ 603               	.LFE25:
+ 605               		.section	.rodata.str1.1
+ 606               	.LC5:
+ 607 0034 5365 6C65 		.string	"Select the"
+ 607      6374 2074 
+ 607      6865 00
+ 608               	.LC6:
+ 609 003f 5065 7263 		.string	"Percentages.."
+ 609      656E 7461 
+ 609      6765 732E 
+ 609      2E00 
+ 610               		.text
+ 611               	.global	displayChoosePercentages
+ 613               	displayChoosePercentages:
+ 614               	.LFB26:
+ 183:led.c         **** }
+ 184:led.c         **** 
+ 185:led.c         **** // Function to display "Select the" and "Percentages.." message
+ 186:led.c         **** void displayChoosePercentages() {
+ 615               		.loc 3 186 0
+ 616               		.cfi_startproc
+ 617               	/* prologue: function */
+ 618               	/* frame size = 0 */
+ 619               	/* stack size = 0 */
+ 620               	.L__stack_usage = 0
+ 187:led.c         ****     lcd_clear();
+ 621               		.loc 3 187 0
+ 622 01c0 0E94 0000 		call lcd_clear
+ 623               	.LVL49:
+ 188:led.c         ****     lcd_setCursor(0, 0);
+ 624               		.loc 3 188 0
+ 625 01c4 60E0      		ldi r22,0
+ 626 01c6 80E0      		ldi r24,0
+ 627 01c8 0E94 0000 		call lcd_setCursor
+ 628               	.LVL50:
+ 189:led.c         ****     lcd_print("Select the");
+ 629               		.loc 3 189 0
+ 630 01cc 80E0      		ldi r24,lo8(.LC5)
+ 631 01ce 90E0      		ldi r25,hi8(.LC5)
+ 632 01d0 0E94 0000 		call lcd_print
+ 633               	.LVL51:
+ 190:led.c         ****     lcd_setCursor(0, 1);
+ 634               		.loc 3 190 0
+ 635 01d4 61E0      		ldi r22,lo8(1)
+ 636 01d6 80E0      		ldi r24,0
+ 637 01d8 0E94 0000 		call lcd_setCursor
+ 638               	.LVL52:
+ 191:led.c         ****     lcd_print("Percentages..");
+ 639               		.loc 3 191 0
+ 640 01dc 80E0      		ldi r24,lo8(.LC6)
+ 641 01de 90E0      		ldi r25,hi8(.LC6)
+ 642 01e0 0C94 0000 		jmp lcd_print
+ 643               	.LVL53:
+ 644               		.cfi_endproc
+ 645               	.LFE26:
+ 647               		.section	.rodata.str1.1
+ 648               	.LC7:
+ 649 004d 4578 6365 		.string	"Exceeded 100%"
+ 649      6564 6564 
+ 649      2031 3030 
+ 649      2500 
+ 650               	.LC8:
+ 651 005b 5472 7920 		.string	"Try again"
+ 651      6167 6169 
+ 651      6E00 
+ 652               		.text
+ 653               	.global	displayExceed100
+ 655               	displayExceed100:
+ 656               	.LFB27:
+ 192:led.c         **** }
+ 193:led.c         **** 
+ 194:led.c         **** // Function to display exceeded 100% message
+ 195:led.c         **** void displayExceed100() {
+ 657               		.loc 3 195 0
+ 658               		.cfi_startproc
+ 659               	/* prologue: function */
+ 660               	/* frame size = 0 */
+ 661               	/* stack size = 0 */
+ 662               	.L__stack_usage = 0
+ 196:led.c         ****     lcd_clear();
+ 663               		.loc 3 196 0
+ 664 01e4 0E94 0000 		call lcd_clear
+ 665               	.LVL54:
+ 197:led.c         ****     lcd_setCursor(0, 0);
+ 666               		.loc 3 197 0
+ 667 01e8 60E0      		ldi r22,0
+ 668 01ea 80E0      		ldi r24,0
+ 669 01ec 0E94 0000 		call lcd_setCursor
+ 670               	.LVL55:
+ 198:led.c         ****     lcd_print("Exceeded 100%");
+ 671               		.loc 3 198 0
+ 672 01f0 80E0      		ldi r24,lo8(.LC7)
+ 673 01f2 90E0      		ldi r25,hi8(.LC7)
+ 674 01f4 0E94 0000 		call lcd_print
+ 675               	.LVL56:
+ 199:led.c         ****     lcd_setCursor(0, 1);
+ 676               		.loc 3 199 0
+ 677 01f8 61E0      		ldi r22,lo8(1)
+ 678 01fa 80E0      		ldi r24,0
+ 679 01fc 0E94 0000 		call lcd_setCursor
+ 680               	.LVL57:
+ 200:led.c         ****     lcd_print("Try again");
+ 681               		.loc 3 200 0
+ 682 0200 80E0      		ldi r24,lo8(.LC8)
+ 683 0202 90E0      		ldi r25,hi8(.LC8)
+ 684 0204 0E94 0000 		call lcd_print
+ 685               	.LVL58:
+ 686               	.LBB61:
+ 687               	.LBB62:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 688               		.loc 2 187 0
+ 689 0208 2FEF      		ldi r18,lo8(12799999)
+ 690 020a 8FE4      		ldi r24,hi8(12799999)
+ 691 020c 93EC      		ldi r25,hlo8(12799999)
+ 692 020e 2150      	1:	subi r18,1
+ 693 0210 8040      		sbci r24,0
+ 694 0212 9040      		sbci r25,0
+ 695 0214 01F4      		brne 1b
+ 696 0216 00C0      		rjmp .
+ 697 0218 0000      		nop
+ 698               	.LVL59:
+ 699 021a 0895      		ret
+ 700               	.LBE62:
+ 701               	.LBE61:
+ 702               		.cfi_endproc
+ 703               	.LFE27:
+ 705               		.section	.rodata.str1.1
+ 706               	.LC9:
+ 707 0065 2564 2525 		.string	"%d%%"
+ 707      00
+ 708               		.text
+ 709               	.global	displayFruitinAuto
+ 711               	displayFruitinAuto:
+ 712               	.LFB28:
+ 201:led.c         ****     _delay_ms(4000);
+ 202:led.c         **** }
+ 203:led.c         **** 
+ 204:led.c         **** // Function to display a fruit and its percentage in auto mode
+ 205:led.c         **** void displayFruitinAuto(char *fruit, uint8_t percentage) {
+ 713               		.loc 3 205 0
+ 714               		.cfi_startproc
+ 715               	.LVL60:
+ 716 021c EF92      		push r14
+ 717               	.LCFI11:
+ 718               		.cfi_def_cfa_offset 3
+ 719               		.cfi_offset 14, -2
+ 720 021e FF92      		push r15
+ 721               	.LCFI12:
+ 722               		.cfi_def_cfa_offset 4
+ 723               		.cfi_offset 15, -3
+ 724 0220 0F93      		push r16
+ 725               	.LCFI13:
+ 726               		.cfi_def_cfa_offset 5
+ 727               		.cfi_offset 16, -4
+ 728 0222 1F93      		push r17
+ 729               	.LCFI14:
+ 730               		.cfi_def_cfa_offset 6
+ 731               		.cfi_offset 17, -5
+ 732 0224 CF93      		push r28
+ 733               	.LCFI15:
+ 734               		.cfi_def_cfa_offset 7
+ 735               		.cfi_offset 28, -6
+ 736 0226 DF93      		push r29
+ 737               	.LCFI16:
+ 738               		.cfi_def_cfa_offset 8
+ 739               		.cfi_offset 29, -7
+ 740 0228 CDB7      		in r28,__SP_L__
+ 741 022a DEB7      		in r29,__SP_H__
+ 742               	.LCFI17:
+ 743               		.cfi_def_cfa_register 28
+ 744 022c 6097      		sbiw r28,16
+ 745               	.LCFI18:
+ 746               		.cfi_def_cfa_offset 24
+ 747 022e 0FB6      		in __tmp_reg__,__SREG__
+ 748 0230 F894      		cli
+ 749 0232 DEBF      		out __SP_H__,r29
+ 750 0234 0FBE      		out __SREG__,__tmp_reg__
+ 751 0236 CDBF      		out __SP_L__,r28
+ 752               	/* prologue: function */
+ 753               	/* frame size = 16 */
+ 754               	/* stack size = 22 */
+ 755               	.L__stack_usage = 22
+ 756 0238 7C01      		movw r14,r24
+ 757 023a 162F      		mov r17,r22
+ 206:led.c         ****     char buffer[16];
+ 207:led.c         ****     lcd_clear();
+ 758               		.loc 3 207 0
+ 759 023c 0E94 0000 		call lcd_clear
+ 760               	.LVL61:
+ 208:led.c         ****     lcd_setCursor(0, 0);
+ 761               		.loc 3 208 0
+ 762 0240 60E0      		ldi r22,0
+ 763 0242 80E0      		ldi r24,0
+ 764 0244 0E94 0000 		call lcd_setCursor
+ 765               	.LVL62:
+ 209:led.c         ****     lcd_print(fruit);
+ 766               		.loc 3 209 0
+ 767 0248 C701      		movw r24,r14
+ 768 024a 0E94 0000 		call lcd_print
+ 769               	.LVL63:
+ 210:led.c         ****     lcd_setCursor(0, 1);
+ 770               		.loc 3 210 0
+ 771 024e 61E0      		ldi r22,lo8(1)
+ 772 0250 80E0      		ldi r24,0
+ 773 0252 0E94 0000 		call lcd_setCursor
+ 774               	.LVL64:
+ 211:led.c         ****     snprintf(buffer, sizeof(buffer), "%d%%", percentage);
+ 775               		.loc 3 211 0
+ 776 0256 1F92      		push __zero_reg__
+ 777 0258 1F93      		push r17
+ 778 025a 80E0      		ldi r24,lo8(.LC9)
+ 779 025c 90E0      		ldi r25,hi8(.LC9)
+ 780 025e 9F93      		push r25
+ 781 0260 8F93      		push r24
+ 782 0262 1F92      		push __zero_reg__
+ 783 0264 80E1      		ldi r24,lo8(16)
+ 784 0266 8F93      		push r24
+ 785 0268 8E01      		movw r16,r28
+ 786 026a 0F5F      		subi r16,-1
+ 787 026c 1F4F      		sbci r17,-1
+ 788 026e 1F93      		push r17
+ 789 0270 0F93      		push r16
+ 790 0272 0E94 0000 		call snprintf
+ 791               	.LVL65:
+ 212:led.c         ****     lcd_print(buffer);
+ 792               		.loc 3 212 0
+ 793 0276 C801      		movw r24,r16
+ 794 0278 0E94 0000 		call lcd_print
+ 795               	.LVL66:
+ 213:led.c         **** }
+ 796               		.loc 3 213 0
+ 797 027c 0FB6      		in __tmp_reg__,__SREG__
+ 798 027e F894      		cli
+ 799 0280 DEBF      		out __SP_H__,r29
+ 800 0282 0FBE      		out __SREG__,__tmp_reg__
+ 801 0284 CDBF      		out __SP_L__,r28
+ 802               	/* epilogue start */
+ 803 0286 6096      		adiw r28,16
+ 804 0288 0FB6      		in __tmp_reg__,__SREG__
+ 805 028a F894      		cli
+ 806 028c DEBF      		out __SP_H__,r29
+ 807 028e 0FBE      		out __SREG__,__tmp_reg__
+ 808 0290 CDBF      		out __SP_L__,r28
+ 809 0292 DF91      		pop r29
+ 810 0294 CF91      		pop r28
+ 811 0296 1F91      		pop r17
+ 812               	.LVL67:
+ 813 0298 0F91      		pop r16
+ 814 029a FF90      		pop r15
+ 815 029c EF90      		pop r14
+ 816               	.LVL68:
+ 817 029e 0895      		ret
+ 818               		.cfi_endproc
+ 819               	.LFE28:
+ 821               	.global	displayFruitinManual
+ 823               	displayFruitinManual:
+ 824               	.LFB29:
+ 214:led.c         **** 
+ 215:led.c         **** // Function to display a fruit in manual mode
+ 216:led.c         **** void displayFruitinManual(char *fruit) {
+ 825               		.loc 3 216 0
+ 826               		.cfi_startproc
+ 827               	.LVL69:
+ 828 02a0 CF93      		push r28
+ 829               	.LCFI19:
+ 830               		.cfi_def_cfa_offset 3
+ 831               		.cfi_offset 28, -2
+ 832 02a2 DF93      		push r29
+ 833               	.LCFI20:
+ 834               		.cfi_def_cfa_offset 4
+ 835               		.cfi_offset 29, -3
+ 836               	/* prologue: function */
+ 837               	/* frame size = 0 */
+ 838               	/* stack size = 2 */
+ 839               	.L__stack_usage = 2
+ 840 02a4 EC01      		movw r28,r24
+ 217:led.c         ****     char buffer[16];
+ 218:led.c         ****     lcd_clear();
+ 841               		.loc 3 218 0
+ 842 02a6 0E94 0000 		call lcd_clear
+ 843               	.LVL70:
+ 219:led.c         ****     lcd_setCursor(0, 0);
+ 844               		.loc 3 219 0
+ 845 02aa 60E0      		ldi r22,0
+ 846 02ac 80E0      		ldi r24,0
+ 847 02ae 0E94 0000 		call lcd_setCursor
+ 848               	.LVL71:
+ 220:led.c         ****     lcd_print(fruit);
+ 849               		.loc 3 220 0
+ 850 02b2 CE01      		movw r24,r28
+ 851               	/* epilogue start */
+ 221:led.c         **** }
+ 852               		.loc 3 221 0
+ 853 02b4 DF91      		pop r29
+ 854 02b6 CF91      		pop r28
+ 855               	.LVL72:
+ 220:led.c         ****     lcd_print(fruit);
+ 856               		.loc 3 220 0
+ 857 02b8 0C94 0000 		jmp lcd_print
+ 858               	.LVL73:
+ 859               		.cfi_endproc
+ 860               	.LFE29:
+ 862               		.section	.rodata.str1.1
+ 863               	.LC10:
+ 864 006a 596F 7572 		.string	"Your order is"
+ 864      206F 7264 
+ 864      6572 2069 
+ 864      7300 
+ 865               	.LC11:
+ 866 0078 6F6E 2074 		.string	"on the way"
+ 866      6865 2077 
+ 866      6179 00
+ 867               		.text
+ 868               	.global	displayOrderComplete
+ 870               	displayOrderComplete:
+ 871               	.LFB30:
+ 222:led.c         **** 
+ 223:led.c         **** // Function to display "Your order is" and "on the way"
+ 224:led.c         **** void displayOrderComplete() {
+ 872               		.loc 3 224 0
+ 873               		.cfi_startproc
+ 874               	/* prologue: function */
+ 875               	/* frame size = 0 */
+ 876               	/* stack size = 0 */
+ 877               	.L__stack_usage = 0
+ 225:led.c         ****     lcd_clear();
+ 878               		.loc 3 225 0
+ 879 02bc 0E94 0000 		call lcd_clear
+ 880               	.LVL74:
+ 226:led.c         ****     lcd_setCursor(0, 0);
+ 881               		.loc 3 226 0
+ 882 02c0 60E0      		ldi r22,0
+ 883 02c2 80E0      		ldi r24,0
+ 884 02c4 0E94 0000 		call lcd_setCursor
+ 885               	.LVL75:
+ 227:led.c         ****     lcd_print("Your order is");
+ 886               		.loc 3 227 0
+ 887 02c8 80E0      		ldi r24,lo8(.LC10)
+ 888 02ca 90E0      		ldi r25,hi8(.LC10)
+ 889 02cc 0E94 0000 		call lcd_print
+ 890               	.LVL76:
+ 228:led.c         ****     lcd_setCursor(0, 1);
+ 891               		.loc 3 228 0
+ 892 02d0 61E0      		ldi r22,lo8(1)
+ 893 02d2 80E0      		ldi r24,0
+ 894 02d4 0E94 0000 		call lcd_setCursor
+ 895               	.LVL77:
+ 229:led.c         ****     lcd_print("on the way");
+ 896               		.loc 3 229 0
+ 897 02d8 80E0      		ldi r24,lo8(.LC11)
+ 898 02da 90E0      		ldi r25,hi8(.LC11)
+ 899 02dc 0C94 0000 		jmp lcd_print
+ 900               	.LVL78:
+ 901               		.cfi_endproc
+ 902               	.LFE30:
+ 904               		.section	.rodata.str1.1
+ 905               	.LC12:
+ 906 0083 5075 7368 		.string	"Push Switch 1"
+ 906      2053 7769 
+ 906      7463 6820 
+ 906      3100 
+ 907               	.LC13:
+ 908 0091 746F 2073 		.string	"to stop"
+ 908      746F 7000 
+ 909               		.text
+ 910               	.global	interruptSwitch
+ 912               	interruptSwitch:
+ 913               	.LFB31:
+ 230:led.c         **** }
+ 231:led.c         **** // Function to display "Press switch 1 to stop"
+ 232:led.c         **** void interruptSwitch() {
+ 914               		.loc 3 232 0
+ 915               		.cfi_startproc
+ 916               	/* prologue: function */
+ 917               	/* frame size = 0 */
+ 918               	/* stack size = 0 */
+ 919               	.L__stack_usage = 0
+ 233:led.c         ****     lcd_clear();
+ 920               		.loc 3 233 0
+ 921 02e0 0E94 0000 		call lcd_clear
+ 922               	.LVL79:
+ 234:led.c         ****     lcd_setCursor(0, 0);
+ 923               		.loc 3 234 0
+ 924 02e4 60E0      		ldi r22,0
+ 925 02e6 80E0      		ldi r24,0
+ 926 02e8 0E94 0000 		call lcd_setCursor
+ 927               	.LVL80:
+ 235:led.c         ****     lcd_print("Push Switch 1");
+ 928               		.loc 3 235 0
+ 929 02ec 80E0      		ldi r24,lo8(.LC12)
+ 930 02ee 90E0      		ldi r25,hi8(.LC12)
+ 931 02f0 0E94 0000 		call lcd_print
+ 932               	.LVL81:
+ 236:led.c         ****     lcd_setCursor(0, 1);
+ 933               		.loc 3 236 0
+ 934 02f4 61E0      		ldi r22,lo8(1)
+ 935 02f6 80E0      		ldi r24,0
+ 936 02f8 0E94 0000 		call lcd_setCursor
+ 937               	.LVL82:
+ 237:led.c         ****     lcd_print("to stop");
+ 938               		.loc 3 237 0
+ 939 02fc 80E0      		ldi r24,lo8(.LC13)
+ 940 02fe 90E0      		ldi r25,hi8(.LC13)
+ 941 0300 0C94 0000 		jmp lcd_print
+ 942               	.LVL83:
+ 943               		.cfi_endproc
+ 944               	.LFE31:
+ 946               		.section	.rodata.str1.1
+ 947               	.LC14:
+ 948 0099 456E 6A6F 		.string	"Enjoy"
+ 948      7900 
+ 949               	.LC15:
+ 950 009f 596F 7572 		.string	"Your drink"
+ 950      2064 7269 
+ 950      6E6B 00
+ 951               		.text
+ 952               	.global	displayEnjoyDrink
+ 954               	displayEnjoyDrink:
+ 955               	.LFB32:
+ 238:led.c         **** }
+ 239:led.c         **** 
+ 240:led.c         **** 
+ 241:led.c         **** // Function to display "Enjoy" and "Your drink"
+ 242:led.c         **** void displayEnjoyDrink() {
+ 956               		.loc 3 242 0
+ 957               		.cfi_startproc
+ 958               	/* prologue: function */
+ 959               	/* frame size = 0 */
+ 960               	/* stack size = 0 */
+ 961               	.L__stack_usage = 0
+ 243:led.c         ****     lcd_clear();
+ 962               		.loc 3 243 0
+ 963 0304 0E94 0000 		call lcd_clear
+ 964               	.LVL84:
+ 244:led.c         ****     lcd_setCursor(0, 0);
+ 965               		.loc 3 244 0
+ 966 0308 60E0      		ldi r22,0
+ 967 030a 80E0      		ldi r24,0
+ 968 030c 0E94 0000 		call lcd_setCursor
+ 969               	.LVL85:
+ 245:led.c         ****     lcd_print("Enjoy");
+ 970               		.loc 3 245 0
+ 971 0310 80E0      		ldi r24,lo8(.LC14)
+ 972 0312 90E0      		ldi r25,hi8(.LC14)
+ 973 0314 0E94 0000 		call lcd_print
+ 974               	.LVL86:
+ 246:led.c         ****     lcd_setCursor(0, 1);
+ 975               		.loc 3 246 0
+ 976 0318 61E0      		ldi r22,lo8(1)
+ 977 031a 80E0      		ldi r24,0
+ 978 031c 0E94 0000 		call lcd_setCursor
+ 979               	.LVL87:
+ 247:led.c         ****     lcd_print("Your drink");
+ 980               		.loc 3 247 0
+ 981 0320 80E0      		ldi r24,lo8(.LC15)
+ 982 0322 90E0      		ldi r25,hi8(.LC15)
+ 983 0324 0E94 0000 		call lcd_print
+ 984               	.LVL88:
+ 985               	.LBB63:
+ 986               	.LBB64:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 987               		.loc 2 187 0
+ 988 0328 2FEF      		ldi r18,lo8(12799999)
+ 989 032a 8FE4      		ldi r24,hi8(12799999)
+ 990 032c 93EC      		ldi r25,hlo8(12799999)
+ 991 032e 2150      	1:	subi r18,1
+ 992 0330 8040      		sbci r24,0
+ 993 0332 9040      		sbci r25,0
+ 994 0334 01F4      		brne 1b
+ 995 0336 00C0      		rjmp .
+ 996 0338 0000      		nop
+ 997               	.LVL89:
+ 998 033a 0895      		ret
+ 999               	.LBE64:
+ 1000               	.LBE63:
+ 1001               		.cfi_endproc
+ 1002               	.LFE32:
+ 1004               	.global	readEncoder
+ 1006               	readEncoder:
+ 1007               	.LFB34:
+ 248:led.c         ****     _delay_ms(4000);
+ 249:led.c         **** }
+ 250:led.c         **** 
+ 251:led.c         **** // Function to check the total percentage
+ 252:led.c         **** void checkPercentageSum() {
+ 253:led.c         ****     uint8_t total = percentages[0] + percentages[1] + percentages[2] + percentages[3];
+ 254:led.c         ****     if (total > 100) {
+ 255:led.c         ****         displayExceed100();  // If total exceeds 100%, allow re-selection
+ 256:led.c         ****         fruitIndex = 0;  // Reset to the first fruit
+ 257:led.c         ****         percentage = 0;
+ 258:led.c         ****         displayFruitinAuto(fruits[fruitIndex], percentage);
+ 259:led.c         ****         selectingPercentage = 1;  // Re-enable encoder for selection
+ 260:led.c         **** 	autoSelection();
+ 261:led.c         ****     } else {
+ 262:led.c         ****         displayOrderComplete();  // If total is valid, display order message
+ 263:led.c         ****         for (uint8_t i = 0; i < 4; i++) {
+ 264:led.c         ****             turnOnMotor(i, percentages[i]);  // Turn on motors based on percentages
+ 265:led.c         ****         }
+ 266:led.c         **** 
+ 267:led.c         ****         displayEnjoyDrink();  // Display enjoyment message
+ 268:led.c         ****         fruitIndex = 0;  // Reset fruit index for new selection
+ 269:led.c         ****         percentages[0] = percentages[1] = percentages[2] = percentages[3] = 0;  // Reset percentage
+ 270:led.c         ****        
+ 271:led.c         ****     }
+ 272:led.c         **** }
+ 273:led.c         **** 
+ 274:led.c         **** // Function to read rotary encoder rotation
+ 275:led.c         **** int8_t readEncoder() {
+ 1008               		.loc 3 275 0
+ 1009               		.cfi_startproc
+ 1010               	/* prologue: function */
+ 1011               	/* frame size = 0 */
+ 1012               	/* stack size = 0 */
+ 1013               	.L__stack_usage = 0
+ 276:led.c         ****     static uint8_t lastStateCLK = 0;
+ 277:led.c         ****     uint8_t currentStateCLK = PINB & (1 << PB1);
+ 1014               		.loc 3 277 0
+ 1015 033c 83B1      		in r24,0x3
+ 1016 033e 8270      		andi r24,lo8(2)
+ 1017               	.LVL90:
+ 278:led.c         **** 
+ 279:led.c         ****     if (currentStateCLK != lastStateCLK) {
+ 1018               		.loc 3 279 0
+ 1019 0340 9091 0000 		lds r25,lastStateCLK.1865
+ 1020 0344 8917      		cp r24,r25
+ 1021 0346 01F0      		breq .L36
+ 280:led.c         ****         if (PINB & (1 << PB2)) {
+ 1022               		.loc 3 280 0
+ 1023 0348 1A9B      		sbis 0x3,2
+ 1024 034a 00C0      		rjmp .L35
+ 281:led.c         ****             lastStateCLK = currentStateCLK;
+ 1025               		.loc 3 281 0
+ 1026 034c 8093 0000 		sts lastStateCLK.1865,r24
+ 282:led.c         ****             return 1;  // Clockwise rotation
+ 1027               		.loc 3 282 0
+ 1028 0350 81E0      		ldi r24,lo8(1)
+ 1029               	.LVL91:
+ 1030 0352 0895      		ret
+ 1031               	.LVL92:
+ 1032               	.L35:
+ 283:led.c         ****         } else {
+ 284:led.c         ****             lastStateCLK = currentStateCLK;
+ 1033               		.loc 3 284 0
+ 1034 0354 8093 0000 		sts lastStateCLK.1865,r24
+ 285:led.c         ****             return -1;  // Counterclockwise rotation
+ 1035               		.loc 3 285 0
+ 1036 0358 8FEF      		ldi r24,lo8(-1)
+ 1037               	.LVL93:
+ 1038 035a 0895      		ret
+ 1039               	.LVL94:
+ 1040               	.L36:
+ 286:led.c         ****         }
+ 287:led.c         ****     }
+ 288:led.c         ****     return 0;  // No rotation
+ 1041               		.loc 3 288 0
+ 1042 035c 80E0      		ldi r24,0
+ 1043               	.LVL95:
+ 289:led.c         **** }
+ 1044               		.loc 3 289 0
+ 1045 035e 0895      		ret
+ 1046               		.cfi_endproc
+ 1047               	.LFE34:
+ 1049               	.global	turnOffMotors
+ 1051               	turnOffMotors:
+ 1052               	.LFB36:
+ 290:led.c         **** 
+ 291:led.c         **** // Function to turn on the specified motor based on percentage
+ 292:led.c         **** void turnOnMotor(uint8_t motor, uint8_t percentage) {
+ 293:led.c         ****     if (percentage > 0) {  // Only turn on if percentage is greater than 0
+ 294:led.c         ****         uint16_t delayTime = getDelayForPercentage(percentage);
+ 295:led.c         ****         PORTD &= ~(1 << motor);  // Turn on the motor
+ 296:led.c         **** 
+ 297:led.c         ****         // Use a loop for delay instead of _delay_ms directly
+ 298:led.c         ****         while (delayTime > 0 && !stopManualMode) {
+ 299:led.c         ****             _delay_ms(1);  // Delay in 1 ms increments
+ 300:led.c         ****             delayTime--;  // Decrease delayTime
+ 301:led.c         ****         }
+ 302:led.c         **** 
+ 303:led.c         ****         PORTD |= (1 << motor);  // Turn off the motor after delay
+ 304:led.c         ****     }
+ 305:led.c         **** }
+ 306:led.c         **** 
+ 307:led.c         **** // Function to turn off all motors
+ 308:led.c         **** void turnOffMotors() {
+ 1053               		.loc 3 308 0
+ 1054               		.cfi_startproc
+ 1055               	/* prologue: function */
+ 1056               	/* frame size = 0 */
+ 1057               	/* stack size = 0 */
+ 1058               	.L__stack_usage = 0
+ 309:led.c         ****     PORTD |= ((1 << PD0) | (1 << PD1) | (1 << PD2) | (1 << PD3));  // Turn off all motors
+ 1059               		.loc 3 309 0
+ 1060 0360 8BB1      		in r24,0xb
+ 1061 0362 8F60      		ori r24,lo8(15)
+ 1062 0364 8BB9      		out 0xb,r24
+ 1063 0366 0895      		ret
+ 1064               		.cfi_endproc
+ 1065               	.LFE36:
+ 1067               	.global	setup
+ 1069               	setup:
+ 1070               	.LFB19:
+ 119:led.c         ****     // Set PC0 (Switch 1) as input
+ 1071               		.loc 3 119 0
+ 1072               		.cfi_startproc
+ 1073               	/* prologue: function */
+ 1074               	/* frame size = 0 */
+ 1075               	/* stack size = 0 */
+ 1076               	.L__stack_usage = 0
+ 121:led.c         ****     PORTC |= (1 << PC0);  // Enable pull-up resistor on PC0
+ 1077               		.loc 3 121 0
+ 1078 0368 3898      		cbi 0x7,0
+ 122:led.c         **** 
+ 1079               		.loc 3 122 0
+ 1080 036a 409A      		sbi 0x8,0
+ 125:led.c         ****     PORTC |= (1 << PC1);  // Enable pull-up resistor on PC1
+ 1081               		.loc 3 125 0
+ 1082 036c 3998      		cbi 0x7,1
+ 126:led.c         **** 
+ 1083               		.loc 3 126 0
+ 1084 036e 419A      		sbi 0x8,1
+ 129:led.c         ****     PORTC |= (1 << PC2);  // Enable pull-up resistor on PC2
+ 1085               		.loc 3 129 0
+ 1086 0370 3A98      		cbi 0x7,2
+ 130:led.c         ****     PCICR |= (1 << PCIE1);  // Enable PCINT1 (Group of pins PC0, PC1, PC2)
+ 1087               		.loc 3 130 0
+ 1088 0372 429A      		sbi 0x8,2
+ 131:led.c         ****     PCMSK1 |= (1 << PC2);   // Enable interrupt on PC2
+ 1089               		.loc 3 131 0
+ 1090 0374 E8E6      		ldi r30,lo8(104)
+ 1091 0376 F0E0      		ldi r31,0
+ 1092 0378 8081      		ld r24,Z
+ 1093 037a 8260      		ori r24,lo8(2)
+ 1094 037c 8083      		st Z,r24
+ 132:led.c         **** 
+ 1095               		.loc 3 132 0
+ 1096 037e ECE6      		ldi r30,lo8(108)
+ 1097 0380 F0E0      		ldi r31,0
+ 1098 0382 8081      		ld r24,Z
+ 1099 0384 8460      		ori r24,lo8(4)
+ 1100 0386 8083      		st Z,r24
+ 135:led.c         ****     DDRB &= ~(1 << PB2);  // Set PB2 (DT) as input
+ 1101               		.loc 3 135 0
+ 1102 0388 2198      		cbi 0x4,1
+ 136:led.c         ****     DDRB &= ~(1 << PB3);  // Set PB3 (SW) as input
+ 1103               		.loc 3 136 0
+ 1104 038a 2298      		cbi 0x4,2
+ 137:led.c         ****     PORTB |= (1 << PB1) | (1 << PB2) | (1 << PB3);  // Enable pull-up resistors for encoder
+ 1105               		.loc 3 137 0
+ 1106 038c 2398      		cbi 0x4,3
+ 138:led.c         **** 
+ 1107               		.loc 3 138 0
+ 1108 038e 85B1      		in r24,0x5
+ 1109 0390 8E60      		ori r24,lo8(14)
+ 1110 0392 85B9      		out 0x5,r24
+ 141:led.c         ****     turnOffMotors();  // Ensure motors are off initially
+ 1111               		.loc 3 141 0
+ 1112 0394 8AB1      		in r24,0xa
+ 1113 0396 8F60      		ori r24,lo8(15)
+ 1114 0398 8AB9      		out 0xa,r24
+ 142:led.c         **** 
+ 1115               		.loc 3 142 0
+ 1116 039a 0E94 0000 		call turnOffMotors
+ 1117               	.LVL96:
+ 145:led.c         **** }
+ 1118               		.loc 3 145 0
+ 1119               	/* #APP */
+ 1120               	 ;  145 "led.c" 1
+ 1121 039e 7894      		sei
+ 1122               	 ;  0 "" 2
+ 1123               	/* #NOAPP */
+ 1124 03a0 0895      		ret
+ 1125               		.cfi_endproc
+ 1126               	.LFE19:
+ 1128               	.global	getDelayForPercentage
+ 1130               	getDelayForPercentage:
+ 1131               	.LFB37:
+ 310:led.c         **** }
+ 311:led.c         **** 
+ 312:led.c         **** // Function to get delay for the corresponding percentage
+ 313:led.c         **** uint16_t getDelayForPercentage(uint8_t percentage) {
+ 1132               		.loc 3 313 0
+ 1133               		.cfi_startproc
+ 1134               	.LVL97:
+ 1135               	/* prologue: function */
+ 1136               	/* frame size = 0 */
+ 1137               	/* stack size = 0 */
+ 1138               	.L__stack_usage = 0
+ 314:led.c         ****     switch (percentage) {
+ 1139               		.loc 3 314 0
+ 1140 03a2 8C33      		cpi r24,lo8(60)
+ 1141 03a4 01F0      		breq .L41
+ 1142 03a6 00F4      		brsh .L42
+ 1143 03a8 8431      		cpi r24,lo8(20)
+ 1144 03aa 01F0      		breq .L43
+ 1145 03ac 8832      		cpi r24,lo8(40)
+ 1146 03ae 01F4      		brne .L47
+ 315:led.c         ****         case 0: return 0;          // 0%
+ 316:led.c         ****         case 20: return 2180;      // 2.18 seconds
+ 317:led.c         ****         case 40: return 4110;      // 4.11 seconds
+ 1147               		.loc 3 317 0
+ 1148 03b0 8EE0      		ldi r24,lo8(14)
+ 1149 03b2 90E1      		ldi r25,lo8(16)
+ 1150               	.LVL98:
+ 1151 03b4 0895      		ret
+ 1152               	.LVL99:
+ 1153               	.L42:
+ 314:led.c         ****     switch (percentage) {
+ 1154               		.loc 3 314 0
+ 1155 03b6 8035      		cpi r24,lo8(80)
+ 1156 03b8 01F0      		breq .L45
+ 1157 03ba 8436      		cpi r24,lo8(100)
+ 1158 03bc 01F4      		brne .L47
+ 318:led.c         ****         case 60: return 5730;      // 5.73 seconds
+ 319:led.c         ****         case 80: return 6970;      // 6.97 seconds
+ 320:led.c         ****         case 100: return 8110;     // 8.11 seconds
+ 1159               		.loc 3 320 0
+ 1160 03be 8EEA      		ldi r24,lo8(-82)
+ 1161 03c0 9FE1      		ldi r25,lo8(31)
+ 1162               	.LVL100:
+ 1163 03c2 0895      		ret
+ 1164               	.LVL101:
+ 1165               	.L43:
+ 316:led.c         ****         case 40: return 4110;      // 4.11 seconds
+ 1166               		.loc 3 316 0
+ 1167 03c4 84E8      		ldi r24,lo8(-124)
+ 1168 03c6 98E0      		ldi r25,lo8(8)
+ 1169               	.LVL102:
+ 1170 03c8 0895      		ret
+ 1171               	.LVL103:
+ 1172               	.L41:
+ 318:led.c         ****         case 60: return 5730;      // 5.73 seconds
+ 1173               		.loc 3 318 0
+ 1174 03ca 82E6      		ldi r24,lo8(98)
+ 1175 03cc 96E1      		ldi r25,lo8(22)
+ 1176               	.LVL104:
+ 1177 03ce 0895      		ret
+ 1178               	.LVL105:
+ 1179               	.L45:
+ 319:led.c         ****         case 100: return 8110;     // 8.11 seconds
+ 1180               		.loc 3 319 0
+ 1181 03d0 8AE3      		ldi r24,lo8(58)
+ 1182 03d2 9BE1      		ldi r25,lo8(27)
+ 1183               	.LVL106:
+ 1184 03d4 0895      		ret
+ 1185               	.LVL107:
+ 1186               	.L47:
+ 315:led.c         ****         case 20: return 2180;      // 2.18 seconds
+ 1187               		.loc 3 315 0
+ 1188 03d6 80E0      		ldi r24,0
+ 1189 03d8 90E0      		ldi r25,0
+ 1190               	.LVL108:
+ 321:led.c         ****         default: return 0;         // Invalid percentage
+ 322:led.c         ****     }
+ 323:led.c         **** }
+ 1191               		.loc 3 323 0
+ 1192 03da 0895      		ret
+ 1193               		.cfi_endproc
+ 1194               	.LFE37:
+ 1197               	turnOnMotor.part.0:
+ 1198               	.LFB40:
+ 292:led.c         ****     if (percentage > 0) {  // Only turn on if percentage is greater than 0
+ 1199               		.loc 3 292 0
+ 1200               		.cfi_startproc
+ 1201               	.LVL109:
+ 1202 03dc CF93      		push r28
+ 1203               	.LCFI21:
+ 1204               		.cfi_def_cfa_offset 3
+ 1205               		.cfi_offset 28, -2
+ 1206               	/* prologue: function */
+ 1207               	/* frame size = 0 */
+ 1208               	/* stack size = 1 */
+ 1209               	.L__stack_usage = 1
+ 1210 03de C82F      		mov r28,r24
+ 1211 03e0 862F      		mov r24,r22
+ 1212               	.LVL110:
+ 1213               	.LBB65:
+ 294:led.c         ****         PORTD &= ~(1 << motor);  // Turn on the motor
+ 1214               		.loc 3 294 0
+ 1215 03e2 0E94 0000 		call getDelayForPercentage
+ 1216               	.LVL111:
+ 295:led.c         **** 
+ 1217               		.loc 3 295 0
+ 1218 03e6 4BB1      		in r20,0xb
+ 1219 03e8 21E0      		ldi r18,lo8(1)
+ 1220 03ea 30E0      		ldi r19,0
+ 1221 03ec 00C0      		rjmp 2f
+ 1222               		1:
+ 1223 03ee 220F      		lsl r18
+ 1224               		2:
+ 1225 03f0 CA95      		dec r28
+ 1226 03f2 02F4      		brpl 1b
+ 1227 03f4 522F      		mov r21,r18
+ 1228 03f6 5095      		com r21
+ 1229 03f8 4523      		and r20,r21
+ 1230 03fa 4BB9      		out 0xb,r20
+ 1231               	.L49:
+ 298:led.c         ****             _delay_ms(1);  // Delay in 1 ms increments
+ 1232               		.loc 3 298 0
+ 1233 03fc 0097      		sbiw r24,0
+ 1234 03fe 01F0      		breq .L50
+ 1235 0400 4091 0000 		lds r20,stopManualMode
+ 1236 0404 4111      		cpse r20,__zero_reg__
+ 1237 0406 00C0      		rjmp .L50
+ 1238               	.LVL112:
+ 1239               	.LBB66:
+ 1240               	.LBB67:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 1241               		.loc 2 187 0
+ 1242 0408 EFE9      		ldi r30,lo8(3999)
+ 1243 040a FFE0      		ldi r31,hi8(3999)
+ 1244 040c 3197      	1:	sbiw r30,1
+ 1245 040e 01F4      		brne 1b
+ 1246 0410 00C0      		rjmp .
+ 1247 0412 0000      		nop
+ 1248               	.LVL113:
+ 1249               	.LBE67:
+ 1250               	.LBE66:
+ 300:led.c         ****         }
+ 1251               		.loc 3 300 0
+ 1252 0414 0197      		sbiw r24,1
+ 1253               	.LVL114:
+ 1254 0416 00C0      		rjmp .L49
+ 1255               	.L50:
+ 303:led.c         ****     }
+ 1256               		.loc 3 303 0
+ 1257 0418 8BB1      		in r24,0xb
+ 1258               	.LVL115:
+ 1259 041a 282B      		or r18,r24
+ 1260 041c 2BB9      		out 0xb,r18
+ 1261               	/* epilogue start */
+ 1262               	.LBE65:
+ 305:led.c         **** 
+ 1263               		.loc 3 305 0
+ 1264 041e CF91      		pop r28
+ 1265               	.LVL116:
+ 1266 0420 0895      		ret
+ 1267               		.cfi_endproc
+ 1268               	.LFE40:
+ 1270               	.global	turnOnMotor
+ 1272               	turnOnMotor:
+ 1273               	.LFB35:
+ 292:led.c         ****     if (percentage > 0) {  // Only turn on if percentage is greater than 0
+ 1274               		.loc 3 292 0
+ 1275               		.cfi_startproc
+ 1276               	.LVL117:
+ 1277               	/* prologue: function */
+ 1278               	/* frame size = 0 */
+ 1279               	/* stack size = 0 */
+ 1280               	.L__stack_usage = 0
+ 293:led.c         ****         uint16_t delayTime = getDelayForPercentage(percentage);
+ 1281               		.loc 3 293 0
+ 1282 0422 6111      		cpse r22,__zero_reg__
+ 1283 0424 0C94 0000 		jmp turnOnMotor.part.0
+ 1284               	.LVL118:
+ 1285               	.L55:
+ 1286 0428 0895      		ret
+ 1287               		.cfi_endproc
+ 1288               	.LFE35:
+ 1290               	.global	checkPercentageSum
+ 1292               	checkPercentageSum:
+ 1293               	.LFB33:
+ 252:led.c         ****     uint8_t total = percentages[0] + percentages[1] + percentages[2] + percentages[3];
+ 1294               		.loc 3 252 0
+ 1295               		.cfi_startproc
+ 1296 042a 0F93      		push r16
+ 1297               	.LCFI22:
+ 1298               		.cfi_def_cfa_offset 3
+ 1299               		.cfi_offset 16, -2
+ 1300 042c 1F93      		push r17
+ 1301               	.LCFI23:
+ 1302               		.cfi_def_cfa_offset 4
+ 1303               		.cfi_offset 17, -3
+ 1304 042e CF93      		push r28
+ 1305               	.LCFI24:
+ 1306               		.cfi_def_cfa_offset 5
+ 1307               		.cfi_offset 28, -4
+ 1308               	/* prologue: function */
+ 1309               	/* frame size = 0 */
+ 1310               	/* stack size = 3 */
+ 1311               	.L__stack_usage = 3
+ 1312               	.LVL119:
+ 254:led.c         ****         displayExceed100();  // If total exceeds 100%, allow re-selection
+ 1313               		.loc 3 254 0
+ 1314 0430 9091 0000 		lds r25,percentages
+ 1315 0434 8091 0000 		lds r24,percentages+1
+ 1316 0438 890F      		add r24,r25
+ 1317 043a 9091 0000 		lds r25,percentages+2
+ 1318 043e 890F      		add r24,r25
+ 1319 0440 9091 0000 		lds r25,percentages+3
+ 1320 0444 890F      		add r24,r25
+ 1321 0446 8536      		cpi r24,lo8(101)
+ 1322 0448 00F0      		brlo .L58
+ 1323               	.LBB75:
+ 1324               	.LBB76:
+ 255:led.c         ****         fruitIndex = 0;  // Reset to the first fruit
+ 1325               		.loc 3 255 0
+ 1326 044a 0E94 0000 		call displayExceed100
+ 1327               	.LVL120:
+ 256:led.c         ****         percentage = 0;
+ 1328               		.loc 3 256 0
+ 1329 044e 1092 0000 		sts fruitIndex,__zero_reg__
+ 257:led.c         ****         displayFruitinAuto(fruits[fruitIndex], percentage);
+ 1330               		.loc 3 257 0
+ 1331 0452 1092 0000 		sts percentage,__zero_reg__
+ 258:led.c         ****         selectingPercentage = 1;  // Re-enable encoder for selection
+ 1332               		.loc 3 258 0
+ 1333 0456 60E0      		ldi r22,0
+ 1334 0458 8091 0000 		lds r24,fruits
+ 1335 045c 9091 0000 		lds r25,fruits+1
+ 1336 0460 0E94 0000 		call displayFruitinAuto
+ 1337               	.LVL121:
+ 259:led.c         **** 	autoSelection();
+ 1338               		.loc 3 259 0
+ 1339 0464 81E0      		ldi r24,lo8(1)
+ 1340 0466 8093 0000 		sts selectingPercentage,r24
+ 1341               	/* epilogue start */
+ 1342               	.LBE76:
+ 1343               	.LBE75:
+ 272:led.c         **** 
+ 1344               		.loc 3 272 0
+ 1345 046a CF91      		pop r28
+ 1346 046c 1F91      		pop r17
+ 1347 046e 0F91      		pop r16
+ 1348               	.LBB78:
+ 1349               	.LBB77:
+ 260:led.c         ****     } else {
+ 1350               		.loc 3 260 0
+ 1351 0470 0C94 0000 		jmp autoSelection
+ 1352               	.LVL122:
+ 1353               	.L58:
+ 1354               	.LBE77:
+ 1355               	.LBE78:
+ 262:led.c         ****         for (uint8_t i = 0; i < 4; i++) {
+ 1356               		.loc 3 262 0
+ 1357 0474 0E94 0000 		call displayOrderComplete
+ 1358               	.LVL123:
+ 1359 0478 00E0      		ldi r16,lo8(percentages)
+ 1360 047a 10E0      		ldi r17,hi8(percentages)
+ 1361               	.LBB79:
+ 263:led.c         ****             turnOnMotor(i, percentages[i]);  // Turn on motors based on percentages
+ 1362               		.loc 3 263 0
+ 1363 047c C0E0      		ldi r28,0
+ 1364               	.LVL124:
+ 1365               	.L59:
+ 264:led.c         ****         }
+ 1366               		.loc 3 264 0 discriminator 3
+ 1367 047e F801      		movw r30,r16
+ 1368 0480 6191      		ld r22,Z+
+ 1369 0482 8F01      		movw r16,r30
+ 1370 0484 8C2F      		mov r24,r28
+ 1371 0486 0E94 0000 		call turnOnMotor
+ 1372               	.LVL125:
+ 263:led.c         ****             turnOnMotor(i, percentages[i]);  // Turn on motors based on percentages
+ 1373               		.loc 3 263 0 discriminator 3
+ 1374 048a CF5F      		subi r28,lo8(-(1))
+ 1375               	.LVL126:
+ 1376 048c C430      		cpi r28,lo8(4)
+ 1377 048e 01F4      		brne .L59
+ 1378               	.LBE79:
+ 267:led.c         ****         fruitIndex = 0;  // Reset fruit index for new selection
+ 1379               		.loc 3 267 0
+ 1380 0490 0E94 0000 		call displayEnjoyDrink
+ 1381               	.LVL127:
+ 268:led.c         ****         percentages[0] = percentages[1] = percentages[2] = percentages[3] = 0;  // Reset percentage
+ 1382               		.loc 3 268 0
+ 1383 0494 1092 0000 		sts fruitIndex,__zero_reg__
+ 269:led.c         ****        
+ 1384               		.loc 3 269 0
+ 1385 0498 1092 0000 		sts percentages+3,__zero_reg__
+ 1386 049c 1092 0000 		sts percentages+2,__zero_reg__
+ 1387 04a0 1092 0000 		sts percentages+1,__zero_reg__
+ 1388 04a4 1092 0000 		sts percentages,__zero_reg__
+ 1389               	/* epilogue start */
+ 272:led.c         **** 
+ 1390               		.loc 3 272 0
+ 1391 04a8 CF91      		pop r28
+ 1392               	.LVL128:
+ 1393 04aa 1F91      		pop r17
+ 1394 04ac 0F91      		pop r16
+ 1395 04ae 0895      		ret
+ 1396               		.cfi_endproc
+ 1397               	.LFE33:
+ 1399               	.global	autoSelection
+ 1401               	autoSelection:
+ 1402               	.LFB18:
+  83:led.c         ****         while (1) {
+ 1403               		.loc 3 83 0
+ 1404               		.cfi_startproc
+ 1405               	/* prologue: function */
+ 1406               	/* frame size = 0 */
+ 1407               	/* stack size = 0 */
+ 1408               	.L__stack_usage = 0
+ 1409               	.L67:
+  85:led.c         ****                 // Read the rotary encoder to adjust the percentage
+ 1410               		.loc 3 85 0
+ 1411 04b0 8091 0000 		lds r24,selectingPercentage
+ 1412 04b4 8823      		tst r24
+ 1413 04b6 01F4      		brne .+2
+ 1414 04b8 00C0      		rjmp .L66
+ 1415               	.LBB80:
+  87:led.c         ****                 if (rotation > 0 && percentage < 100) {
+ 1416               		.loc 3 87 0
+ 1417 04ba 0E94 0000 		call readEncoder
+ 1418               	.LVL129:
+  88:led.c         ****                     percentage += 20;
+ 1419               		.loc 3 88 0
+ 1420 04be 1816      		cp __zero_reg__,r24
+ 1421 04c0 04F4      		brge .L63
+  88:led.c         ****                     percentage += 20;
+ 1422               		.loc 3 88 0 is_stmt 0 discriminator 1
+ 1423 04c2 6091 0000 		lds r22,percentage
+ 1424 04c6 6436      		cpi r22,lo8(100)
+ 1425 04c8 00F4      		brsh .L64
+  89:led.c         ****                     displayFruitinAuto(fruits[fruitIndex], percentage);  // Update the displayed pe
+ 1426               		.loc 3 89 0 is_stmt 1
+ 1427 04ca 6C5E      		subi r22,lo8(-(20))
+ 1428 04cc 00C0      		rjmp .L83
+ 1429               	.L63:
+  91:led.c         ****                     percentage -= 20;
+ 1430               		.loc 3 91 0
+ 1431 04ce 8823      		tst r24
+ 1432 04d0 01F0      		breq .L64
+  91:led.c         ****                     percentage -= 20;
+ 1433               		.loc 3 91 0 is_stmt 0 discriminator 1
+ 1434 04d2 6091 0000 		lds r22,percentage
+ 1435 04d6 6623      		tst r22
+ 1436 04d8 01F0      		breq .L64
+  92:led.c         ****                     displayFruitinAuto(fruits[fruitIndex], percentage);  // Update the displayed pe
+ 1437               		.loc 3 92 0 is_stmt 1
+ 1438 04da 6451      		subi r22,lo8(-(-20))
+ 1439               	.L83:
+ 1440 04dc 6093 0000 		sts percentage,r22
+  93:led.c         ****                 }
+ 1441               		.loc 3 93 0
+ 1442 04e0 E091 0000 		lds r30,fruitIndex
+ 1443 04e4 F0E0      		ldi r31,0
+ 1444 04e6 EE0F      		lsl r30
+ 1445 04e8 FF1F      		rol r31
+ 1446 04ea E050      		subi r30,lo8(-(fruits))
+ 1447 04ec F040      		sbci r31,hi8(-(fruits))
+ 1448 04ee 8081      		ld r24,Z
+ 1449 04f0 9181      		ldd r25,Z+1
+ 1450               	.LVL130:
+ 1451 04f2 0E94 0000 		call displayFruitinAuto
+ 1452               	.LVL131:
+ 1453               	.L64:
+  97:led.c         ****                     _delay_ms(50); // Debounce delay
+ 1454               		.loc 3 97 0
+ 1455 04f6 0E94 0000 		call isSwitch3Pressed
+ 1456               	.LVL132:
+ 1457 04fa 8823      		tst r24
+ 1458 04fc 01F0      		breq .L66
+ 1459               	.LVL133:
+ 1460               	.LBB81:
+ 1461               	.LBB82:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 1462               		.loc 2 187 0
+ 1463 04fe 2FEF      		ldi r18,lo8(159999)
+ 1464 0500 80E7      		ldi r24,hi8(159999)
+ 1465 0502 92E0      		ldi r25,hlo8(159999)
+ 1466 0504 2150      	1:	subi r18,1
+ 1467 0506 8040      		sbci r24,0
+ 1468 0508 9040      		sbci r25,0
+ 1469 050a 01F4      		brne 1b
+ 1470 050c 00C0      		rjmp .
+ 1471 050e 0000      		nop
+ 1472               	.LVL134:
+ 1473               	.LBE82:
+ 1474               	.LBE81:
+  99:led.c         ****                         percentages[fruitIndex] = percentage;  // Store the selected percentage
+ 1475               		.loc 3 99 0
+ 1476 0510 0E94 0000 		call isSwitch3Pressed
+ 1477               	.LVL135:
+ 1478 0514 8823      		tst r24
+ 1479 0516 01F0      		breq .L66
+ 100:led.c         ****                         fruitIndex++;  // Move to the next fruit
+ 1480               		.loc 3 100 0
+ 1481 0518 E091 0000 		lds r30,fruitIndex
+ 1482 051c AE2F      		mov r26,r30
+ 1483 051e B0E0      		ldi r27,0
+ 1484 0520 A050      		subi r26,lo8(-(percentages))
+ 1485 0522 B040      		sbci r27,hi8(-(percentages))
+ 1486 0524 8091 0000 		lds r24,percentage
+ 1487 0528 8C93      		st X,r24
+ 101:led.c         **** 
+ 1488               		.loc 3 101 0
+ 1489 052a EF5F      		subi r30,lo8(-(1))
+ 1490 052c E093 0000 		sts fruitIndex,r30
+ 103:led.c         ****                             percentage = 0;  // Reset percentage for the next fruit
+ 1491               		.loc 3 103 0
+ 1492 0530 E430      		cpi r30,lo8(4)
+ 1493 0532 00F4      		brsh .L65
+ 104:led.c         ****                             displayFruitinAuto(fruits[fruitIndex], percentage);  // Display next fr
+ 1494               		.loc 3 104 0
+ 1495 0534 1092 0000 		sts percentage,__zero_reg__
+ 105:led.c         ****                         } else {
+ 1496               		.loc 3 105 0
+ 1497 0538 F0E0      		ldi r31,0
+ 1498 053a EE0F      		lsl r30
+ 1499 053c FF1F      		rol r31
+ 1500 053e E050      		subi r30,lo8(-(fruits))
+ 1501 0540 F040      		sbci r31,hi8(-(fruits))
+ 1502 0542 60E0      		ldi r22,0
+ 1503 0544 8081      		ld r24,Z
+ 1504 0546 9181      		ldd r25,Z+1
+ 1505 0548 0E94 0000 		call displayFruitinAuto
+ 1506               	.LVL136:
+ 1507 054c 00C0      		rjmp .L66
+ 1508               	.L65:
+ 107:led.c         ****                             checkPercentageSum();  // Check if total exceeds 100
+ 1509               		.loc 3 107 0
+ 1510 054e 1092 0000 		sts selectingPercentage,__zero_reg__
+ 108:led.c         ****                             break;  // Exit the inner loop
+ 1511               		.loc 3 108 0
+ 1512 0552 0C94 0000 		jmp checkPercentageSum
+ 1513               	.LVL137:
+ 1514               	.L66:
+ 1515               	.LBE80:
+ 1516               	.LBB83:
+ 1517               	.LBB84:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 1518               		.loc 2 187 0
+ 1519 0556 2FEF      		ldi r18,lo8(159999)
+ 1520 0558 80E7      		ldi r24,hi8(159999)
+ 1521 055a 92E0      		ldi r25,hlo8(159999)
+ 1522 055c 2150      	1:	subi r18,1
+ 1523 055e 8040      		sbci r24,0
+ 1524 0560 9040      		sbci r25,0
+ 1525 0562 01F4      		brne 1b
+ 1526 0564 00C0      		rjmp .
+ 1527 0566 0000      		nop
+ 1528 0568 00C0      		rjmp .L67
+ 1529               	.LBE84:
+ 1530               	.LBE83:
+ 1531               		.cfi_endproc
+ 1532               	.LFE18:
+ 1534               		.section	.rodata.str1.1
+ 1535               	.LC16:
+ 1536 00aa 4D61 6E75 		.string	"Manual Mode..."
+ 1536      616C 204D 
+ 1536      6F64 652E 
+ 1536      2E2E 00
+ 1537               	.LC17:
+ 1538 00b9 5365 6C65 		.string	"Select only"
+ 1538      6374 206F 
+ 1538      6E6C 7900 
+ 1539               	.LC18:
+ 1540 00c5 4F6E 6520 		.string	"One Fruit!"
+ 1540      4672 7569 
+ 1540      7421 00
+ 1541               		.text
+ 1542               	.global	manualMode
+ 1544               	manualMode:
+ 1545               	.LFB38:
+ 324:led.c         **** 
+ 325:led.c         **** // Function for Manual Mode
+ 326:led.c         **** void manualMode() {
+ 1546               		.loc 3 326 0
+ 1547               		.cfi_startproc
+ 1548 056a CF93      		push r28
+ 1549               	.LCFI25:
+ 1550               		.cfi_def_cfa_offset 3
+ 1551               		.cfi_offset 28, -2
+ 1552               	/* prologue: function */
+ 1553               	/* frame size = 0 */
+ 1554               	/* stack size = 1 */
+ 1555               	.L__stack_usage = 1
+ 327:led.c         ****    
+ 328:led.c         **** 
+ 329:led.c         **** 
+ 330:led.c         ****     lcd_clear();
+ 1556               		.loc 3 330 0
+ 1557 056c 0E94 0000 		call lcd_clear
+ 1558               	.LVL138:
+ 331:led.c         ****     lcd_setCursor(0, 0);
+ 1559               		.loc 3 331 0
+ 1560 0570 60E0      		ldi r22,0
+ 1561 0572 80E0      		ldi r24,0
+ 1562 0574 0E94 0000 		call lcd_setCursor
+ 1563               	.LVL139:
+ 332:led.c         ****     lcd_print("Processing");
+ 1564               		.loc 3 332 0
+ 1565 0578 80E0      		ldi r24,lo8(.LC3)
+ 1566 057a 90E0      		ldi r25,hi8(.LC3)
+ 1567 057c 0E94 0000 		call lcd_print
+ 1568               	.LVL140:
+ 333:led.c         ****     lcd_setCursor(0, 1);
+ 1569               		.loc 3 333 0
+ 1570 0580 61E0      		ldi r22,lo8(1)
+ 1571 0582 80E0      		ldi r24,0
+ 1572 0584 0E94 0000 		call lcd_setCursor
+ 1573               	.LVL141:
+ 334:led.c         ****     lcd_print("Manual Mode...");
+ 1574               		.loc 3 334 0
+ 1575 0588 80E0      		ldi r24,lo8(.LC16)
+ 1576 058a 90E0      		ldi r25,hi8(.LC16)
+ 1577 058c 0E94 0000 		call lcd_print
+ 1578               	.LVL142:
+ 1579               	.LBB103:
+ 1580               	.LBB104:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 1581               		.loc 2 187 0
+ 1582 0590 2FEF      		ldi r18,lo8(12799999)
+ 1583 0592 8FE4      		ldi r24,hi8(12799999)
+ 1584 0594 93EC      		ldi r25,hlo8(12799999)
+ 1585 0596 2150      	1:	subi r18,1
+ 1586 0598 8040      		sbci r24,0
+ 1587 059a 9040      		sbci r25,0
+ 1588 059c 01F4      		brne 1b
+ 1589 059e 00C0      		rjmp .
+ 1590 05a0 0000      		nop
+ 1591               	.LVL143:
+ 1592               	.LBE104:
+ 1593               	.LBE103:
+ 335:led.c         ****     _delay_ms(4000);
+ 336:led.c         **** 
+ 337:led.c         ****     lcd_clear();
+ 1594               		.loc 3 337 0
+ 1595 05a2 0E94 0000 		call lcd_clear
+ 1596               	.LVL144:
+ 338:led.c         ****     lcd_setCursor(0, 0);
+ 1597               		.loc 3 338 0
+ 1598 05a6 60E0      		ldi r22,0
+ 1599 05a8 80E0      		ldi r24,0
+ 1600 05aa 0E94 0000 		call lcd_setCursor
+ 1601               	.LVL145:
+ 339:led.c         ****     lcd_print("Select only");
+ 1602               		.loc 3 339 0
+ 1603 05ae 80E0      		ldi r24,lo8(.LC17)
+ 1604 05b0 90E0      		ldi r25,hi8(.LC17)
+ 1605 05b2 0E94 0000 		call lcd_print
+ 1606               	.LVL146:
+ 340:led.c         ****     lcd_setCursor(0, 1);
+ 1607               		.loc 3 340 0
+ 1608 05b6 61E0      		ldi r22,lo8(1)
+ 1609 05b8 80E0      		ldi r24,0
+ 1610 05ba 0E94 0000 		call lcd_setCursor
+ 1611               	.LVL147:
+ 341:led.c         ****     lcd_print("One Fruit!");
+ 1612               		.loc 3 341 0
+ 1613 05be 80E0      		ldi r24,lo8(.LC18)
+ 1614 05c0 90E0      		ldi r25,hi8(.LC18)
+ 1615 05c2 0E94 0000 		call lcd_print
+ 1616               	.LVL148:
+ 1617               	.LBB105:
+ 1618               	.LBB106:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 1619               		.loc 2 187 0
+ 1620 05c6 2FEF      		ldi r18,lo8(12799999)
+ 1621 05c8 8FE4      		ldi r24,hi8(12799999)
+ 1622 05ca 93EC      		ldi r25,hlo8(12799999)
+ 1623 05cc 2150      	1:	subi r18,1
+ 1624 05ce 8040      		sbci r24,0
+ 1625 05d0 9040      		sbci r25,0
+ 1626 05d2 01F4      		brne 1b
+ 1627 05d4 00C0      		rjmp .
+ 1628 05d6 0000      		nop
+ 1629               	.LVL149:
+ 1630               	.LBE106:
+ 1631               	.LBE105:
+ 342:led.c         ****     _delay_ms(4000);
+ 343:led.c         ****     
+ 344:led.c         ****     uint8_t selectedFruitIndex = 0; // Index for the currently selected fruit
+ 1632               		.loc 3 344 0
+ 1633 05d8 C0E0      		ldi r28,0
+ 1634               	.LVL150:
+ 1635               	.L92:
+ 1636               	.LBB107:
+ 345:led.c         ****     uint8_t fruitSelected = 0;       // Flag to check if a fruit is selected
+ 346:led.c         **** 
+ 347:led.c         ****     // Main loop for manual mode
+ 348:led.c         ****     while (1) {
+ 349:led.c         ****         // Display the currently selected fruit
+ 350:led.c         ****         displayFruitinManual(fruits[selectedFruitIndex]);
+ 1637               		.loc 3 350 0
+ 1638 05da EC2F      		mov r30,r28
+ 1639 05dc F0E0      		ldi r31,0
+ 1640 05de EE0F      		lsl r30
+ 1641 05e0 FF1F      		rol r31
+ 1642 05e2 E050      		subi r30,lo8(-(fruits))
+ 1643 05e4 F040      		sbci r31,hi8(-(fruits))
+ 1644 05e6 8081      		ld r24,Z
+ 1645 05e8 9181      		ldd r25,Z+1
+ 1646 05ea 0E94 0000 		call displayFruitinManual
+ 1647               	.LVL151:
+ 351:led.c         ****         
+ 352:led.c         ****         // Read the rotary encoder to switch between fruits
+ 353:led.c         ****         int8_t rotation = readEncoder();
+ 1648               		.loc 3 353 0
+ 1649 05ee 0E94 0000 		call readEncoder
+ 1650               	.LVL152:
+ 354:led.c         ****         if (rotation > 0) {
+ 1651               		.loc 3 354 0
+ 1652 05f2 1816      		cp __zero_reg__,r24
+ 1653 05f4 04F4      		brge .L85
+ 355:led.c         ****             // Rotate clockwise to select the next fruit
+ 356:led.c         ****             selectedFruitIndex++;
+ 1654               		.loc 3 356 0
+ 1655 05f6 CF5F      		subi r28,lo8(-(1))
+ 1656               	.LVL153:
+ 357:led.c         ****             if (selectedFruitIndex >= 4) {
+ 1657               		.loc 3 357 0
+ 1658 05f8 C430      		cpi r28,lo8(4)
+ 1659 05fa 01F4      		brne .L88
+ 358:led.c         ****                 selectedFruitIndex = 0; // Wrap around
+ 1660               		.loc 3 358 0
+ 1661 05fc C0E0      		ldi r28,0
+ 1662               	.LVL154:
+ 1663 05fe 00C0      		rjmp .L88
+ 1664               	.LVL155:
+ 1665               	.L85:
+ 359:led.c         ****             }
+ 360:led.c         ****             _delay_ms(200); // Debounce delay
+ 361:led.c         ****         } else if (rotation < 0) {
+ 1666               		.loc 3 361 0
+ 1667 0600 8823      		tst r24
+ 1668 0602 01F0      		breq .L87
+ 362:led.c         ****             // Rotate counterclockwise to select the previous fruit
+ 363:led.c         ****             if (selectedFruitIndex == 0) {
+ 1669               		.loc 3 363 0
+ 1670 0604 CC23      		tst r28
+ 1671 0606 01F0      		breq .L93
+ 364:led.c         ****                 selectedFruitIndex = 3; // Wrap around
+ 365:led.c         ****             } else {
+ 366:led.c         ****                 selectedFruitIndex--;
+ 1672               		.loc 3 366 0
+ 1673 0608 C150      		subi r28,lo8(-(-1))
+ 1674               	.LVL156:
+ 1675 060a 00C0      		rjmp .L88
+ 1676               	.L93:
+ 364:led.c         ****                 selectedFruitIndex = 3; // Wrap around
+ 1677               		.loc 3 364 0
+ 1678 060c C3E0      		ldi r28,lo8(3)
+ 1679               	.LVL157:
+ 1680               	.L88:
+ 1681               	.LBB108:
+ 1682               	.LBB109:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 1683               		.loc 2 187 0
+ 1684 060e 2FEF      		ldi r18,lo8(639999)
+ 1685 0610 83EC      		ldi r24,hi8(639999)
+ 1686 0612 99E0      		ldi r25,hlo8(639999)
+ 1687 0614 2150      	1:	subi r18,1
+ 1688 0616 8040      		sbci r24,0
+ 1689 0618 9040      		sbci r25,0
+ 1690 061a 01F4      		brne 1b
+ 1691               	.LVL158:
+ 1692 061c 00C0      		rjmp .
+ 1693 061e 0000      		nop
+ 1694               	.LVL159:
+ 1695               	.L87:
+ 1696               	.LBE109:
+ 1697               	.LBE108:
+ 367:led.c         ****             }
+ 368:led.c         ****             _delay_ms(200); // Debounce delay
+ 369:led.c         ****         }
+ 370:led.c         **** 
+ 371:led.c         ****         // Check if the rotary encoder switch is pressed to confirm selection
+ 372:led.c         ****         if (isSwitch3Pressed()) {
+ 1698               		.loc 3 372 0
+ 1699 0620 0E94 0000 		call isSwitch3Pressed
+ 1700               	.LVL160:
+ 1701 0624 8823      		tst r24
+ 1702 0626 01F0      		breq .L89
+ 1703               	.LVL161:
+ 1704               	.LBB110:
+ 1705               	.LBB111:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 1706               		.loc 2 187 0
+ 1707 0628 2FEF      		ldi r18,lo8(159999)
+ 1708 062a 80E7      		ldi r24,hi8(159999)
+ 1709 062c 92E0      		ldi r25,hlo8(159999)
+ 1710 062e 2150      	1:	subi r18,1
+ 1711 0630 8040      		sbci r24,0
+ 1712 0632 9040      		sbci r25,0
+ 1713 0634 01F4      		brne 1b
+ 1714 0636 00C0      		rjmp .
+ 1715 0638 0000      		nop
+ 1716               	.LVL162:
+ 1717               	.LBE111:
+ 1718               	.LBE110:
+ 373:led.c         ****             _delay_ms(50); // Debounce delay
+ 374:led.c         ****             if (isSwitch3Pressed()) { // Confirm switch press after delay
+ 1719               		.loc 3 374 0
+ 1720 063a 0E94 0000 		call isSwitch3Pressed
+ 1721               	.LVL163:
+ 1722 063e 8823      		tst r24
+ 1723 0640 01F0      		breq .L89
+ 375:led.c         ****                 // Activate the selected fruit
+ 376:led.c         ****                 percentages[selectedFruitIndex] = 100; // Example: Set percentage to 100%
+ 1724               		.loc 3 376 0
+ 1725 0642 EC2F      		mov r30,r28
+ 1726 0644 F0E0      		ldi r31,0
+ 1727 0646 E050      		subi r30,lo8(-(percentages))
+ 1728 0648 F040      		sbci r31,hi8(-(percentages))
+ 1729 064a 84E6      		ldi r24,lo8(100)
+ 1730 064c 8083      		st Z,r24
+ 1731               	.LVL164:
+ 1732               	.LBB112:
+ 1733               	.LBB113:
+ 1734 064e 64E6      		ldi r22,lo8(100)
+ 1735 0650 8C2F      		mov r24,r28
+ 1736 0652 0E94 0000 		call turnOnMotor.part.0
+ 1737               	.LVL165:
+ 1738               	.LBE113:
+ 1739               	.LBE112:
+ 377:led.c         ****                 turnOnMotor(selectedFruitIndex, percentages[selectedFruitIndex]); // Turn on the se
+ 378:led.c         ****         	interruptSwitch();
+ 1740               		.loc 3 378 0
+ 1741 0656 0E94 0000 		call interruptSwitch
+ 1742               	.LVL166:
+ 1743               	.LBE107:
+ 379:led.c         ****                 fruitSelected = 1; // Set flag to indicate fruit is selected
+ 380:led.c         ****                 break; // Exit manual mode loop
+ 381:led.c         ****             }
+ 382:led.c         ****         }
+ 383:led.c         **** 
+ 384:led.c         ****         // Check if stop switch (PC2) is pressed
+ 385:led.c         ****         if (stopManualMode) {
+ 386:led.c         ****             turnOffMotors();  // Ensure all motors are turned off
+ 387:led.c         ****             break;  // Exit manual mode loop
+ 388:led.c         ****         }
+ 389:led.c         **** 
+ 390:led.c         ****         _delay_ms(50); // Small delay for debouncing
+ 391:led.c         ****     }
+ 392:led.c         **** 
+ 393:led.c         ****     // After fruit selection or stop
+ 394:led.c         ****     if (fruitSelected) {
+ 395:led.c         ****          // Display order message
+ 396:led.c         ****         displayEnjoyDrink();      // Display enjoy message
+ 1744               		.loc 3 396 0
+ 1745 065a 0E94 0000 		call displayEnjoyDrink
+ 1746               	.LVL167:
+ 1747 065e 00C0      		rjmp .L90
+ 1748               	.LVL168:
+ 1749               	.L89:
+ 1750               	.LBB116:
+ 385:led.c         ****             turnOffMotors();  // Ensure all motors are turned off
+ 1751               		.loc 3 385 0
+ 1752 0660 8091 0000 		lds r24,stopManualMode
+ 1753 0664 8823      		tst r24
+ 1754 0666 01F0      		breq .L91
+ 386:led.c         ****             break;  // Exit manual mode loop
+ 1755               		.loc 3 386 0
+ 1756 0668 0E94 0000 		call turnOffMotors
+ 1757               	.LVL169:
+ 1758 066c 00C0      		rjmp .L90
+ 1759               	.L91:
+ 1760               	.LVL170:
+ 1761               	.LBB114:
+ 1762               	.LBB115:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 1763               		.loc 2 187 0
+ 1764 066e 2FEF      		ldi r18,lo8(159999)
+ 1765 0670 80E7      		ldi r24,hi8(159999)
+ 1766 0672 92E0      		ldi r25,hlo8(159999)
+ 1767 0674 2150      	1:	subi r18,1
+ 1768 0676 8040      		sbci r24,0
+ 1769 0678 9040      		sbci r25,0
+ 1770 067a 01F4      		brne 1b
+ 1771 067c 00C0      		rjmp .
+ 1772 067e 0000      		nop
+ 1773 0680 00C0      		rjmp .L92
+ 1774               	.LVL171:
+ 1775               	.L90:
+ 1776               	.LBE115:
+ 1777               	.LBE114:
+ 1778               	.LBE116:
+ 397:led.c         ****     }
+ 398:led.c         ****     
+ 399:led.c         ****     // Return to mode selection or reset for another manual selection
+ 400:led.c         ****     fruitIndex = 0;  // Reset fruit index for new selection
+ 1779               		.loc 3 400 0
+ 1780 0682 1092 0000 		sts fruitIndex,__zero_reg__
+ 401:led.c         ****     percentages[0] = percentages[1] = percentages[2] = percentages[3] = 0;  // Reset percentages
+ 1781               		.loc 3 401 0
+ 1782 0686 1092 0000 		sts percentages+3,__zero_reg__
+ 1783 068a 1092 0000 		sts percentages+2,__zero_reg__
+ 1784 068e 1092 0000 		sts percentages+1,__zero_reg__
+ 1785 0692 1092 0000 		sts percentages,__zero_reg__
+ 1786               	/* epilogue start */
+ 402:led.c         **** }
+ 1787               		.loc 3 402 0
+ 1788 0696 CF91      		pop r28
+ 1789               	.LVL172:
+ 1790 0698 0895      		ret
+ 1791               		.cfi_endproc
+ 1792               	.LFE38:
+ 1794               		.section	.rodata.str1.1
+ 1795               	.LC19:
+ 1796 00d0 546F 7461 		.string	"Total should not"
+ 1796      6C20 7368 
+ 1796      6F75 6C64 
+ 1796      206E 6F74 
+ 1796      00
+ 1797               	.LC20:
+ 1798 00e1 6578 6365 		.string	"exceed 100%"
+ 1798      6564 2031 
+ 1798      3030 2500 
+ 1799               		.section	.text.startup,"ax",@progbits
+ 1800               	.global	main
+ 1802               	main:
+ 1803               	.LFB17:
+  40:led.c         ****     setup();  // Initialize pins
+ 1804               		.loc 3 40 0
+ 1805               		.cfi_startproc
+ 1806               	/* prologue: function */
+ 1807               	/* frame size = 0 */
+ 1808               	/* stack size = 0 */
+ 1809               	.L__stack_usage = 0
+  41:led.c         ****     initialize();  // Initialize LCD
+ 1810               		.loc 3 41 0
+ 1811 0000 0E94 0000 		call setup
+ 1812               	.LVL173:
+  42:led.c         **** 
+ 1813               		.loc 3 42 0
+ 1814 0004 0E94 0000 		call initialize
+ 1815               	.LVL174:
+  52:led.c         ****                 manualMode();        // Go to Manual Mode
+ 1816               		.loc 3 52 0
+ 1817 0008 C1E0      		ldi r28,lo8(1)
+ 1818               	.L107:
+  45:led.c         **** 
+ 1819               		.loc 3 45 0
+ 1820 000a 0E94 0000 		call displayModes
+ 1821               	.LVL175:
+ 1822               	.L105:
+  48:led.c         ****             // Check if Switch 2 (PC1) is pressed for Manual Mode
+ 1823               		.loc 3 48 0
+ 1824 000e 0E94 0000 		call isSwitch1Pressed
+ 1825               	.LVL176:
+ 1826 0012 8111      		cpse r24,__zero_reg__
+ 1827 0014 00C0      		rjmp .L110
+  50:led.c         ****                 // Disable Switches for Manual Mode
+ 1828               		.loc 3 50 0
+ 1829 0016 0E94 0000 		call isSwitch2Pressed
+ 1830               	.LVL177:
+ 1831 001a 8823      		tst r24
+ 1832 001c 01F0      		breq .L105
+  52:led.c         ****                 manualMode();        // Go to Manual Mode
+ 1833               		.loc 3 52 0
+ 1834 001e C093 0000 		sts switch1Pressed,r28
+  53:led.c         ****             }
+ 1835               		.loc 3 53 0
+ 1836 0022 0E94 0000 		call manualMode
+ 1837               	.LVL178:
+ 1838 0026 00C0      		rjmp .L105
+ 1839               	.L110:
+  58:led.c         **** 
+ 1840               		.loc 3 58 0
+ 1841 0028 C093 0000 		sts switch1Pressed,r28
+  61:led.c         ****         _delay_ms(4000);
+ 1842               		.loc 3 61 0
+ 1843 002c 0E94 0000 		call displayProcessing
+ 1844               	.LVL179:
+ 1845               	.LBB117:
+ 1846               	.LBB118:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 1847               		.loc 2 187 0
+ 1848 0030 2FEF      		ldi r18,lo8(12799999)
+ 1849 0032 8FE4      		ldi r24,hi8(12799999)
+ 1850 0034 93EC      		ldi r25,hlo8(12799999)
+ 1851 0036 2150      	1:	subi r18,1
+ 1852 0038 8040      		sbci r24,0
+ 1853 003a 9040      		sbci r25,0
+ 1854 003c 01F4      		brne 1b
+ 1855 003e 00C0      		rjmp .
+ 1856 0040 0000      		nop
+ 1857               	.LVL180:
+ 1858               	.LBE118:
+ 1859               	.LBE117:
+  64:led.c         ****         _delay_ms(4000);
+ 1860               		.loc 3 64 0
+ 1861 0042 0E94 0000 		call displayChoosePercentages
+ 1862               	.LVL181:
+ 1863               	.LBB119:
+ 1864               	.LBB120:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 1865               		.loc 2 187 0
+ 1866 0046 2FEF      		ldi r18,lo8(12799999)
+ 1867 0048 8FE4      		ldi r24,hi8(12799999)
+ 1868 004a 93EC      		ldi r25,hlo8(12799999)
+ 1869 004c 2150      	1:	subi r18,1
+ 1870 004e 8040      		sbci r24,0
+ 1871 0050 9040      		sbci r25,0
+ 1872 0052 01F4      		brne 1b
+ 1873 0054 00C0      		rjmp .
+ 1874 0056 0000      		nop
+ 1875               	.LVL182:
+ 1876               	.LBE120:
+ 1877               	.LBE119:
+  67:led.c         ****         lcd_setCursor(0, 0);
+ 1878               		.loc 3 67 0
+ 1879 0058 0E94 0000 		call lcd_clear
+ 1880               	.LVL183:
+  68:led.c         ****         lcd_print("Total should not");
+ 1881               		.loc 3 68 0
+ 1882 005c 60E0      		ldi r22,0
+ 1883 005e 80E0      		ldi r24,0
+ 1884 0060 0E94 0000 		call lcd_setCursor
+ 1885               	.LVL184:
+  69:led.c         ****         lcd_setCursor(0, 1);
+ 1886               		.loc 3 69 0
+ 1887 0064 80E0      		ldi r24,lo8(.LC19)
+ 1888 0066 90E0      		ldi r25,hi8(.LC19)
+ 1889 0068 0E94 0000 		call lcd_print
+ 1890               	.LVL185:
+  70:led.c         ****         lcd_print("exceed 100%");
+ 1891               		.loc 3 70 0
+ 1892 006c 61E0      		ldi r22,lo8(1)
+ 1893 006e 80E0      		ldi r24,0
+ 1894 0070 0E94 0000 		call lcd_setCursor
+ 1895               	.LVL186:
+  71:led.c         ****         _delay_ms(4000);
+ 1896               		.loc 3 71 0
+ 1897 0074 80E0      		ldi r24,lo8(.LC20)
+ 1898 0076 90E0      		ldi r25,hi8(.LC20)
+ 1899 0078 0E94 0000 		call lcd_print
+ 1900               	.LVL187:
+ 1901               	.LBB121:
+ 1902               	.LBB122:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 1903               		.loc 2 187 0
+ 1904 007c 2FEF      		ldi r18,lo8(12799999)
+ 1905 007e 8FE4      		ldi r24,hi8(12799999)
+ 1906 0080 93EC      		ldi r25,hlo8(12799999)
+ 1907 0082 2150      	1:	subi r18,1
+ 1908 0084 8040      		sbci r24,0
+ 1909 0086 9040      		sbci r25,0
+ 1910 0088 01F4      		brne 1b
+ 1911 008a 00C0      		rjmp .
+ 1912 008c 0000      		nop
+ 1913               	.LVL188:
+ 1914               	.LBE122:
+ 1915               	.LBE121:
+  75:led.c         ****         selectingPercentage = 1;  // Enable percentage selection
+ 1916               		.loc 3 75 0
+ 1917 008e E091 0000 		lds r30,fruitIndex
+ 1918 0092 F0E0      		ldi r31,0
+ 1919 0094 EE0F      		lsl r30
+ 1920 0096 FF1F      		rol r31
+ 1921 0098 E050      		subi r30,lo8(-(fruits))
+ 1922 009a F040      		sbci r31,hi8(-(fruits))
+ 1923 009c 6091 0000 		lds r22,percentage
+ 1924 00a0 8081      		ld r24,Z
+ 1925 00a2 9181      		ldd r25,Z+1
+ 1926 00a4 0E94 0000 		call displayFruitinAuto
+ 1927               	.LVL189:
+  76:led.c         **** 	autoSelection();
+ 1928               		.loc 3 76 0
+ 1929 00a8 C093 0000 		sts selectingPercentage,r28
+  77:led.c         ****     }
+ 1930               		.loc 3 77 0
+ 1931 00ac 0E94 0000 		call autoSelection
+ 1932               	.LVL190:
+  78:led.c         ****     return 0;
+ 1933               		.loc 3 78 0
+ 1934 00b0 00C0      		rjmp .L107
+ 1935               		.cfi_endproc
+ 1936               	.LFE17:
+ 1938               		.text
+ 1939               	.global	__vector_4
+ 1941               	__vector_4:
+ 1942               	.LFB39:
+ 403:led.c         **** 
+ 404:led.c         **** // Interrupt service routine for handling PC2 (Switch 3)
+ 405:led.c         **** ISR(PCINT1_vect) {
+ 1943               		.loc 3 405 0
+ 1944               		.cfi_startproc
+ 1945 069a 1F92      		push r1
+ 1946               	.LCFI26:
+ 1947               		.cfi_def_cfa_offset 3
+ 1948               		.cfi_offset 1, -2
+ 1949 069c 0F92      		push r0
+ 1950               	.LCFI27:
+ 1951               		.cfi_def_cfa_offset 4
+ 1952               		.cfi_offset 0, -3
+ 1953 069e 0FB6      		in r0,__SREG__
+ 1954 06a0 0F92      		push r0
+ 1955 06a2 1124      		clr __zero_reg__
+ 1956 06a4 2F93      		push r18
+ 1957               	.LCFI28:
+ 1958               		.cfi_def_cfa_offset 5
+ 1959               		.cfi_offset 18, -4
+ 1960 06a6 3F93      		push r19
+ 1961               	.LCFI29:
+ 1962               		.cfi_def_cfa_offset 6
+ 1963               		.cfi_offset 19, -5
+ 1964 06a8 4F93      		push r20
+ 1965               	.LCFI30:
+ 1966               		.cfi_def_cfa_offset 7
+ 1967               		.cfi_offset 20, -6
+ 1968 06aa 5F93      		push r21
+ 1969               	.LCFI31:
+ 1970               		.cfi_def_cfa_offset 8
+ 1971               		.cfi_offset 21, -7
+ 1972 06ac 6F93      		push r22
+ 1973               	.LCFI32:
+ 1974               		.cfi_def_cfa_offset 9
+ 1975               		.cfi_offset 22, -8
+ 1976 06ae 7F93      		push r23
+ 1977               	.LCFI33:
+ 1978               		.cfi_def_cfa_offset 10
+ 1979               		.cfi_offset 23, -9
+ 1980 06b0 8F93      		push r24
+ 1981               	.LCFI34:
+ 1982               		.cfi_def_cfa_offset 11
+ 1983               		.cfi_offset 24, -10
+ 1984 06b2 9F93      		push r25
+ 1985               	.LCFI35:
+ 1986               		.cfi_def_cfa_offset 12
+ 1987               		.cfi_offset 25, -11
+ 1988 06b4 AF93      		push r26
+ 1989               	.LCFI36:
+ 1990               		.cfi_def_cfa_offset 13
+ 1991               		.cfi_offset 26, -12
+ 1992 06b6 BF93      		push r27
+ 1993               	.LCFI37:
+ 1994               		.cfi_def_cfa_offset 14
+ 1995               		.cfi_offset 27, -13
+ 1996 06b8 EF93      		push r30
+ 1997               	.LCFI38:
+ 1998               		.cfi_def_cfa_offset 15
+ 1999               		.cfi_offset 30, -14
+ 2000 06ba FF93      		push r31
+ 2001               	.LCFI39:
+ 2002               		.cfi_def_cfa_offset 16
+ 2003               		.cfi_offset 31, -15
+ 2004               	/* prologue: Signal */
+ 2005               	/* frame size = 0 */
+ 2006               	/* stack size = 15 */
+ 2007               	.L__stack_usage = 15
+ 406:led.c         ****     if (isEncoderPressed()) {
+ 2008               		.loc 3 406 0
+ 2009 06bc 0E94 0000 		call isEncoderPressed
+ 2010               	.LVL191:
+ 2011 06c0 8823      		tst r24
+ 2012 06c2 01F0      		breq .L111
+ 407:led.c         ****         stopManualMode = 1;  // Set flag to indicate stop
+ 2013               		.loc 3 407 0
+ 2014 06c4 81E0      		ldi r24,lo8(1)
+ 2015 06c6 8093 0000 		sts stopManualMode,r24
+ 2016               	.L111:
+ 2017               	/* epilogue start */
+ 408:led.c         ****     }
+ 409:led.c         **** }
+ 2018               		.loc 3 409 0
+ 2019 06ca FF91      		pop r31
+ 2020 06cc EF91      		pop r30
+ 2021 06ce BF91      		pop r27
+ 2022 06d0 AF91      		pop r26
+ 2023 06d2 9F91      		pop r25
+ 2024 06d4 8F91      		pop r24
+ 2025 06d6 7F91      		pop r23
+ 2026 06d8 6F91      		pop r22
+ 2027 06da 5F91      		pop r21
+ 2028 06dc 4F91      		pop r20
+ 2029 06de 3F91      		pop r19
+ 2030 06e0 2F91      		pop r18
+ 2031 06e2 0F90      		pop r0
+ 2032 06e4 0FBE      		out __SREG__,r0
+ 2033 06e6 0F90      		pop r0
+ 2034 06e8 1F90      		pop r1
+ 2035 06ea 1895      		reti
+ 2036               		.cfi_endproc
+ 2037               	.LFE39:
+ 2039               		.local	lastStateCLK.1865
+ 2040               		.comm	lastStateCLK.1865,1,1
+ 2041               	.global	stopManualMode
+ 2042               		.section .bss
+ 2045               	stopManualMode:
+ 2046 0000 00        		.zero	1
+ 2047               	.global	switch1Pressed
+ 2050               	switch1Pressed:
+ 2051 0001 00        		.zero	1
+ 2052               	.global	selectingPercentage
+ 2055               	selectingPercentage:
+ 2056 0002 00        		.zero	1
+ 2057               	.global	percentage
+ 2060               	percentage:
+ 2061 0003 00        		.zero	1
+ 2062               	.global	percentages
+ 2065               	percentages:
+ 2066 0004 0000 0000 		.zero	4
+ 2067               	.global	fruitIndex
+ 2070               	fruitIndex:
+ 2071 0008 00        		.zero	1
+ 2072               	.global	fruits
+ 2073               		.section	.rodata.str1.1
+ 2074               	.LC21:
+ 2075 00ed 5049 4E45 		.string	"PINEAPPLE"
+ 2075      4150 504C 
+ 2075      4500 
+ 2076               	.LC22:
+ 2077 00f7 4D41 4E47 		.string	"MANGO"
+ 2077      4F00 
+ 2078               	.LC23:
+ 2079 00fd 4150 504C 		.string	"APPLE"
+ 2079      4500 
+ 2080               	.LC24:
+ 2081 0103 4F52 414E 		.string	"ORANGE"
+ 2081      4745 00
+ 2082               		.data
+ 2085               	fruits:
+ 2086 0000 0000      		.word	.LC21
+ 2087 0002 0000      		.word	.LC22
+ 2088 0004 0000      		.word	.LC23
+ 2089 0006 0000      		.word	.LC24
+ 2090               		.text
+ 2091               	.Letext0:
+ 2092               		.file 4 "/usr/lib/avr/include/stdint.h"
+ 2093               		.file 5 "<built-in>"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 led.c
+     /tmp/ccct36zO.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccct36zO.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccct36zO.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccct36zO.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccct36zO.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccct36zO.s:12     .text:0000000000000000 i2c_init
+     /tmp/ccct36zO.s:35     .text:0000000000000012 i2c_start
+     /tmp/ccct36zO.s:59     .text:0000000000000022 i2c_stop
+     /tmp/ccct36zO.s:76     .text:000000000000002a i2c_write
+     /tmp/ccct36zO.s:105    .text:000000000000003e lcd_enable
+     /tmp/ccct36zO.s:176    .text:000000000000007a lcd_send
+     /tmp/ccct36zO.s:224    .text:000000000000009e lcd_command
+     /tmp/ccct36zO.s:242    .text:00000000000000a4 lcd_print
+     /tmp/ccct36zO.s:285    .text:00000000000000be lcd_clear
+     /tmp/ccct36zO.s:322    .text:00000000000000d2 lcd_setCursor
+     /tmp/ccct36zO.s:390    .text:000000000000011a initialize
+     /tmp/ccct36zO.s:438    .text:0000000000000148 isSwitch1Pressed
+     /tmp/ccct36zO.s:458    .text:0000000000000150 isSwitch2Pressed
+     /tmp/ccct36zO.s:479    .text:000000000000015c isSwitch3Pressed
+     /tmp/ccct36zO.s:501    .text:000000000000016a isEncoderPressed
+     /tmp/ccct36zO.s:529    .text:0000000000000178 displayModes
+     /tmp/ccct36zO.s:571    .text:000000000000019c displayProcessing
+     /tmp/ccct36zO.s:613    .text:00000000000001c0 displayChoosePercentages
+     /tmp/ccct36zO.s:655    .text:00000000000001e4 displayExceed100
+     /tmp/ccct36zO.s:711    .text:000000000000021c displayFruitinAuto
+     /tmp/ccct36zO.s:823    .text:00000000000002a0 displayFruitinManual
+     /tmp/ccct36zO.s:870    .text:00000000000002bc displayOrderComplete
+     /tmp/ccct36zO.s:912    .text:00000000000002e0 interruptSwitch
+     /tmp/ccct36zO.s:954    .text:0000000000000304 displayEnjoyDrink
+     /tmp/ccct36zO.s:1006   .text:000000000000033c readEncoder
+                             .bss:0000000000000009 lastStateCLK.1865
+     /tmp/ccct36zO.s:1051   .text:0000000000000360 turnOffMotors
+     /tmp/ccct36zO.s:1069   .text:0000000000000368 setup
+     /tmp/ccct36zO.s:1130   .text:00000000000003a2 getDelayForPercentage
+     /tmp/ccct36zO.s:1197   .text:00000000000003dc turnOnMotor.part.0
+     /tmp/ccct36zO.s:2045   .bss:0000000000000000 stopManualMode
+     /tmp/ccct36zO.s:1272   .text:0000000000000422 turnOnMotor
+     /tmp/ccct36zO.s:1292   .text:000000000000042a checkPercentageSum
+     /tmp/ccct36zO.s:2065   .bss:0000000000000004 percentages
+     /tmp/ccct36zO.s:2070   .bss:0000000000000008 fruitIndex
+     /tmp/ccct36zO.s:2060   .bss:0000000000000003 percentage
+     /tmp/ccct36zO.s:2085   .data:0000000000000000 fruits
+     /tmp/ccct36zO.s:2055   .bss:0000000000000002 selectingPercentage
+     /tmp/ccct36zO.s:1401   .text:00000000000004b0 autoSelection
+     /tmp/ccct36zO.s:1544   .text:000000000000056a manualMode
+     /tmp/ccct36zO.s:1802   .text.startup:0000000000000000 main
+     /tmp/ccct36zO.s:2050   .bss:0000000000000001 switch1Pressed
+     /tmp/ccct36zO.s:1941   .text:000000000000069a __vector_4
+
+UNDEFINED SYMBOLS
+snprintf
+__do_copy_data
+__do_clear_bss
