@@ -1,0 +1,284 @@
+   1               		.file	"led.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   7               		.text
+   8               	.Ltext0:
+   9               		.cfi_sections	.debug_frame
+  10               	.global	delay_ms
+  12               	delay_ms:
+  13               	.LFB0:
+  14               		.file 1 "led.c"
+   1:led.c         **** #include <avr/io.h>
+   2:led.c         **** 
+   3:led.c         **** #define IN1 PC0  // Connected to IN1 of L293D for motor 1
+   4:led.c         **** #define IN2 PC1  // Connected to IN2 of L293D for motor 1
+   5:led.c         **** #define EN1 PC2  // Connected to EN1 (Enable) of L293D for motor 1
+   6:led.c         **** 
+   7:led.c         **** #define IN3 PC3  // Connected to IN3 of L293D for motor 2
+   8:led.c         **** #define IN4 PC4  // Connected to IN4 of L293D for motor 2
+   9:led.c         **** #define EN2 PC5  // Connected to EN2 (Enable) of L293D for motor 2
+  10:led.c         **** 
+  11:led.c         **** void delay_ms(uint16_t ms) {
+  15               		.loc 1 11 0
+  16               		.cfi_startproc
+  17               	.LVL0:
+  18               	/* prologue: function */
+  19               	/* frame size = 0 */
+  20               	/* stack size = 0 */
+  21               	.L__stack_usage = 0
+  22 0000 0895      		ret
+  23               		.cfi_endproc
+  24               	.LFE0:
+  26               	.global	motor1_forward
+  28               	motor1_forward:
+  29               	.LFB1:
+  12:led.c         ****     // Simple delay function
+  13:led.c         ****     for(uint16_t i = 0; i < ms; i++)
+  14:led.c         ****         for(uint16_t j = 0; j < 800; j++);
+  15:led.c         **** }
+  16:led.c         **** 
+  17:led.c         **** // Motor 1 control functions
+  18:led.c         **** void motor1_forward() {
+  30               		.loc 1 18 0
+  31               		.cfi_startproc
+  32               	/* prologue: function */
+  33               	/* frame size = 0 */
+  34               	/* stack size = 0 */
+  35               	.L__stack_usage = 0
+  19:led.c         ****     PORTC &= ~(1 << IN1);  // Set IN1 low
+  36               		.loc 1 19 0
+  37 0002 4098      		cbi 0x8,0
+  20:led.c         ****     PORTC |= (1 << IN2);   // Set IN2 high
+  38               		.loc 1 20 0
+  39 0004 419A      		sbi 0x8,1
+  40 0006 0895      		ret
+  41               		.cfi_endproc
+  42               	.LFE1:
+  44               	.global	motor1_stop
+  46               	motor1_stop:
+  47               	.LFB2:
+  21:led.c         **** }
+  22:led.c         **** 
+  23:led.c         **** void motor1_stop() {
+  48               		.loc 1 23 0
+  49               		.cfi_startproc
+  50               	/* prologue: function */
+  51               	/* frame size = 0 */
+  52               	/* stack size = 0 */
+  53               	.L__stack_usage = 0
+  24:led.c         ****     PORTC &= ~((1 << IN1) | (1 << IN2)); // Set both IN1 and IN2 low (Motor OFF)
+  54               		.loc 1 24 0
+  55 0008 88B1      		in r24,0x8
+  56 000a 8C7F      		andi r24,lo8(-4)
+  57 000c 88B9      		out 0x8,r24
+  58 000e 0895      		ret
+  59               		.cfi_endproc
+  60               	.LFE2:
+  62               	.global	motor1_enable
+  64               	motor1_enable:
+  65               	.LFB3:
+  25:led.c         **** }
+  26:led.c         **** 
+  27:led.c         **** void motor1_enable() {
+  66               		.loc 1 27 0
+  67               		.cfi_startproc
+  68               	/* prologue: function */
+  69               	/* frame size = 0 */
+  70               	/* stack size = 0 */
+  71               	.L__stack_usage = 0
+  28:led.c         ****     PORTC |= (1 << EN1);  // Enable motor 1 by setting EN1 high
+  72               		.loc 1 28 0
+  73 0010 429A      		sbi 0x8,2
+  74 0012 0895      		ret
+  75               		.cfi_endproc
+  76               	.LFE3:
+  78               	.global	motor1_disable
+  80               	motor1_disable:
+  81               	.LFB4:
+  29:led.c         **** }
+  30:led.c         **** 
+  31:led.c         **** void motor1_disable() {
+  82               		.loc 1 31 0
+  83               		.cfi_startproc
+  84               	/* prologue: function */
+  85               	/* frame size = 0 */
+  86               	/* stack size = 0 */
+  87               	.L__stack_usage = 0
+  32:led.c         ****     PORTC &= ~(1 << EN1); // Disable motor 1 by setting EN1 low
+  88               		.loc 1 32 0
+  89 0014 4298      		cbi 0x8,2
+  90 0016 0895      		ret
+  91               		.cfi_endproc
+  92               	.LFE4:
+  94               	.global	motor2_forward
+  96               	motor2_forward:
+  97               	.LFB5:
+  33:led.c         **** }
+  34:led.c         **** 
+  35:led.c         **** // Motor 2 control functions
+  36:led.c         **** void motor2_forward() {
+  98               		.loc 1 36 0
+  99               		.cfi_startproc
+ 100               	/* prologue: function */
+ 101               	/* frame size = 0 */
+ 102               	/* stack size = 0 */
+ 103               	.L__stack_usage = 0
+  37:led.c         ****     PORTC &= ~(1 << IN3);  // Set IN3 low
+ 104               		.loc 1 37 0
+ 105 0018 4398      		cbi 0x8,3
+  38:led.c         ****     PORTC |= (1 << IN4);   // Set IN4 high
+ 106               		.loc 1 38 0
+ 107 001a 449A      		sbi 0x8,4
+ 108 001c 0895      		ret
+ 109               		.cfi_endproc
+ 110               	.LFE5:
+ 112               	.global	motor2_stop
+ 114               	motor2_stop:
+ 115               	.LFB6:
+  39:led.c         **** }
+  40:led.c         **** 
+  41:led.c         **** void motor2_stop() {
+ 116               		.loc 1 41 0
+ 117               		.cfi_startproc
+ 118               	/* prologue: function */
+ 119               	/* frame size = 0 */
+ 120               	/* stack size = 0 */
+ 121               	.L__stack_usage = 0
+  42:led.c         ****     PORTC &= ~((1 << IN3) | (1 << IN4)); // Set both IN3 and IN4 low (Motor OFF)
+ 122               		.loc 1 42 0
+ 123 001e 88B1      		in r24,0x8
+ 124 0020 877E      		andi r24,lo8(-25)
+ 125 0022 88B9      		out 0x8,r24
+ 126 0024 0895      		ret
+ 127               		.cfi_endproc
+ 128               	.LFE6:
+ 130               	.global	motor2_enable
+ 132               	motor2_enable:
+ 133               	.LFB7:
+  43:led.c         **** }
+  44:led.c         **** 
+  45:led.c         **** void motor2_enable() {
+ 134               		.loc 1 45 0
+ 135               		.cfi_startproc
+ 136               	/* prologue: function */
+ 137               	/* frame size = 0 */
+ 138               	/* stack size = 0 */
+ 139               	.L__stack_usage = 0
+  46:led.c         ****     PORTC |= (1 << EN2);  // Enable motor 2 by setting EN2 high
+ 140               		.loc 1 46 0
+ 141 0026 459A      		sbi 0x8,5
+ 142 0028 0895      		ret
+ 143               		.cfi_endproc
+ 144               	.LFE7:
+ 146               	.global	motor2_disable
+ 148               	motor2_disable:
+ 149               	.LFB8:
+  47:led.c         **** }
+  48:led.c         **** 
+  49:led.c         **** void motor2_disable() {
+ 150               		.loc 1 49 0
+ 151               		.cfi_startproc
+ 152               	/* prologue: function */
+ 153               	/* frame size = 0 */
+ 154               	/* stack size = 0 */
+ 155               	.L__stack_usage = 0
+  50:led.c         ****     PORTC &= ~(1 << EN2); // Disable motor 2 by setting EN2 low
+ 156               		.loc 1 50 0
+ 157 002a 4598      		cbi 0x8,5
+ 158 002c 0895      		ret
+ 159               		.cfi_endproc
+ 160               	.LFE8:
+ 162               		.section	.text.startup,"ax",@progbits
+ 163               	.global	main
+ 165               	main:
+ 166               	.LFB9:
+  51:led.c         **** }
+  52:led.c         **** 
+  53:led.c         **** int main(void) {
+ 167               		.loc 1 53 0
+ 168               		.cfi_startproc
+ 169               	/* prologue: function */
+ 170               	/* frame size = 0 */
+ 171               	/* stack size = 0 */
+ 172               	.L__stack_usage = 0
+  54:led.c         ****     // Set PC0 to PC5 as output for both motors
+  55:led.c         ****     DDRC |= (1 << IN1) | (1 << IN2) | (1 << EN1) | (1 << IN3) | (1 << IN4) | (1 << EN2);
+ 173               		.loc 1 55 0
+ 174 0000 87B1      		in r24,0x7
+ 175 0002 8F63      		ori r24,lo8(63)
+ 176 0004 87B9      		out 0x7,r24
+  56:led.c         **** 
+  57:led.c         ****     // Initially stop both motors and enable them
+  58:led.c         ****     motor1_stop();
+ 177               		.loc 1 58 0
+ 178 0006 0E94 0000 		call motor1_stop
+ 179               	.LVL1:
+  59:led.c         ****     motor2_stop();
+ 180               		.loc 1 59 0
+ 181 000a 0E94 0000 		call motor2_stop
+ 182               	.LVL2:
+  60:led.c         ****     motor1_enable();
+ 183               		.loc 1 60 0
+ 184 000e 0E94 0000 		call motor1_enable
+ 185               	.LVL3:
+  61:led.c         ****     motor2_enable();
+ 186               		.loc 1 61 0
+ 187 0012 0E94 0000 		call motor2_enable
+ 188               	.LVL4:
+ 189               	.L11:
+  62:led.c         **** 
+  63:led.c         ****     while(1) {
+  64:led.c         ****         // Move motor 1 forward for 2 seconds
+  65:led.c         ****         motor1_forward();
+ 190               		.loc 1 65 0 discriminator 1
+ 191 0016 0E94 0000 		call motor1_forward
+ 192               	.LVL5:
+  66:led.c         ****         delay_ms(2000);
+  67:led.c         **** 
+  68:led.c         ****         // Stop motor 1 for 1 second
+  69:led.c         ****         motor1_stop();
+ 193               		.loc 1 69 0 discriminator 1
+ 194 001a 0E94 0000 		call motor1_stop
+ 195               	.LVL6:
+  70:led.c         ****         delay_ms(1000);
+  71:led.c         **** 
+  72:led.c         ****         // Move motor 2 forward for 2 seconds
+  73:led.c         ****         motor2_forward();
+ 196               		.loc 1 73 0 discriminator 1
+ 197 001e 0E94 0000 		call motor2_forward
+ 198               	.LVL7:
+  74:led.c         ****         delay_ms(2000);
+  75:led.c         **** 
+  76:led.c         ****         // Stop motor 2 for 1 second
+  77:led.c         ****         motor2_stop();
+ 199               		.loc 1 77 0 discriminator 1
+ 200 0022 0E94 0000 		call motor2_stop
+ 201               	.LVL8:
+ 202 0026 00C0      		rjmp .L11
+ 203               		.cfi_endproc
+ 204               	.LFE9:
+ 206               		.text
+ 207               	.Letext0:
+ 208               		.file 2 "/usr/lib/avr/include/stdint.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 led.c
+     /tmp/cchHAqLp.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cchHAqLp.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cchHAqLp.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cchHAqLp.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cchHAqLp.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cchHAqLp.s:12     .text:0000000000000000 delay_ms
+     /tmp/cchHAqLp.s:28     .text:0000000000000002 motor1_forward
+     /tmp/cchHAqLp.s:46     .text:0000000000000008 motor1_stop
+     /tmp/cchHAqLp.s:64     .text:0000000000000010 motor1_enable
+     /tmp/cchHAqLp.s:80     .text:0000000000000014 motor1_disable
+     /tmp/cchHAqLp.s:96     .text:0000000000000018 motor2_forward
+     /tmp/cchHAqLp.s:114    .text:000000000000001e motor2_stop
+     /tmp/cchHAqLp.s:132    .text:0000000000000026 motor2_enable
+     /tmp/cchHAqLp.s:148    .text:000000000000002a motor2_disable
+     /tmp/cchHAqLp.s:165    .text.startup:0000000000000000 main
+
+NO UNDEFINED SYMBOLS
