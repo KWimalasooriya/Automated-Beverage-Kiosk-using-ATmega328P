@@ -1,0 +1,1551 @@
+   1               		.file	"led.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   7               		.text
+   8               	.Ltext0:
+   9               		.cfi_sections	.debug_frame
+  10               	.global	I2C_Init
+  12               	I2C_Init:
+  13               	.LFB6:
+  14               		.file 1 "i2c.h"
+   1:i2c.h         **** #ifndef I2C_H
+   2:i2c.h         **** #define I2C_H
+   3:i2c.h         **** 
+   4:i2c.h         **** #include <avr/io.h>           /* Include AVR std. library file */
+   5:i2c.h         **** #include <util/delay.h>       /* Include Delay header file */
+   6:i2c.h         **** 
+   7:i2c.h         **** /* LCD I2C address */
+   8:i2c.h         **** #define LCD_I2C_ADDRESS 0x27  /* Define I2C address of the LCD, often 0x27 or 0x3F */
+   9:i2c.h         **** #define LCD_BACKLIGHT 0x08    /* Backlight control bit */
+  10:i2c.h         **** #define ENABLE 0x04           /* Enable bit */
+  11:i2c.h         **** #define READ_WRITE 0x02       /* Read/Write bit */
+  12:i2c.h         **** #define REGISTER_SELECT 0x01  /* Register select bit */
+  13:i2c.h         **** 
+  14:i2c.h         **** /* I2C Functions */
+  15:i2c.h         **** void I2C_Init(void) {
+  15               		.loc 1 15 0
+  16               		.cfi_startproc
+  17               	/* prologue: function */
+  18               	/* frame size = 0 */
+  19               	/* stack size = 0 */
+  20               	.L__stack_usage = 0
+  16:i2c.h         ****     TWSR = 0x00;              /* Set prescaler bits to zero */
+  21               		.loc 1 16 0
+  22 0000 1092 B900 		sts 185,__zero_reg__
+  17:i2c.h         ****     TWBR = 0x46;              /* SCL frequency = 50kHz for F_CPU = 8MHz */
+  23               		.loc 1 17 0
+  24 0004 86E4      		ldi r24,lo8(70)
+  25 0006 8093 B800 		sts 184,r24
+  18:i2c.h         ****     TWCR = (1<<TWEN);         /* Enable TWI */
+  26               		.loc 1 18 0
+  27 000a 84E0      		ldi r24,lo8(4)
+  28 000c 8093 BC00 		sts 188,r24
+  29 0010 0895      		ret
+  30               		.cfi_endproc
+  31               	.LFE6:
+  33               	.global	I2C_Start
+  35               	I2C_Start:
+  36               	.LFB7:
+  19:i2c.h         **** }
+  20:i2c.h         **** 
+  21:i2c.h         **** void I2C_Start(void) {
+  37               		.loc 1 21 0
+  38               		.cfi_startproc
+  39               	/* prologue: function */
+  40               	/* frame size = 0 */
+  41               	/* stack size = 0 */
+  42               	.L__stack_usage = 0
+  22:i2c.h         ****     TWCR = (1<<TWINT)|(1<<TWSTA)|(1<<TWEN);  /* Enable TWI, generate start condition */
+  43               		.loc 1 22 0
+  44 0012 84EA      		ldi r24,lo8(-92)
+  45 0014 8093 BC00 		sts 188,r24
+  46               	.L3:
+  23:i2c.h         ****     while (!(TWCR & (1<<TWINT)));            /* Wait for TWINT flag to set */
+  47               		.loc 1 23 0 discriminator 1
+  48 0018 8091 BC00 		lds r24,188
+  49 001c 87FF      		sbrs r24,7
+  50 001e 00C0      		rjmp .L3
+  51               	/* epilogue start */
+  24:i2c.h         **** }
+  52               		.loc 1 24 0
+  53 0020 0895      		ret
+  54               		.cfi_endproc
+  55               	.LFE7:
+  57               	.global	I2C_Stop
+  59               	I2C_Stop:
+  60               	.LFB8:
+  25:i2c.h         **** 
+  26:i2c.h         **** void I2C_Stop(void) {
+  61               		.loc 1 26 0
+  62               		.cfi_startproc
+  63               	/* prologue: function */
+  64               	/* frame size = 0 */
+  65               	/* stack size = 0 */
+  66               	.L__stack_usage = 0
+  27:i2c.h         ****     TWCR = (1<<TWINT)|(1<<TWSTO)|(1<<TWEN);  /* Enable TWI, generate stop condition */
+  67               		.loc 1 27 0
+  68 0022 84E9      		ldi r24,lo8(-108)
+  69 0024 8093 BC00 		sts 188,r24
+  70               	.LVL0:
+  71               	.LBB18:
+  72               	.LBB19:
+  73               		.file 2 "/usr/lib/avr/include/util/delay.h"
+   1:/usr/lib/avr/include/util/delay.h **** /* Copyright (c) 2002, Marek Michalkiewicz
+   2:/usr/lib/avr/include/util/delay.h ****    Copyright (c) 2004,2005,2007 Joerg Wunsch
+   3:/usr/lib/avr/include/util/delay.h ****    Copyright (c) 2007  Florin-Viorel Petrov
+   4:/usr/lib/avr/include/util/delay.h ****    All rights reserved.
+   5:/usr/lib/avr/include/util/delay.h **** 
+   6:/usr/lib/avr/include/util/delay.h ****    Redistribution and use in source and binary forms, with or without
+   7:/usr/lib/avr/include/util/delay.h ****    modification, are permitted provided that the following conditions are met:
+   8:/usr/lib/avr/include/util/delay.h **** 
+   9:/usr/lib/avr/include/util/delay.h ****    * Redistributions of source code must retain the above copyright
+  10:/usr/lib/avr/include/util/delay.h ****      notice, this list of conditions and the following disclaimer.
+  11:/usr/lib/avr/include/util/delay.h **** 
+  12:/usr/lib/avr/include/util/delay.h ****    * Redistributions in binary form must reproduce the above copyright
+  13:/usr/lib/avr/include/util/delay.h ****      notice, this list of conditions and the following disclaimer in
+  14:/usr/lib/avr/include/util/delay.h ****      the documentation and/or other materials provided with the
+  15:/usr/lib/avr/include/util/delay.h ****      distribution.
+  16:/usr/lib/avr/include/util/delay.h **** 
+  17:/usr/lib/avr/include/util/delay.h ****    * Neither the name of the copyright holders nor the names of
+  18:/usr/lib/avr/include/util/delay.h ****      contributors may be used to endorse or promote products derived
+  19:/usr/lib/avr/include/util/delay.h ****      from this software without specific prior written permission.
+  20:/usr/lib/avr/include/util/delay.h **** 
+  21:/usr/lib/avr/include/util/delay.h ****   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  22:/usr/lib/avr/include/util/delay.h ****   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  23:/usr/lib/avr/include/util/delay.h ****   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  24:/usr/lib/avr/include/util/delay.h ****   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  25:/usr/lib/avr/include/util/delay.h ****   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  26:/usr/lib/avr/include/util/delay.h ****   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  27:/usr/lib/avr/include/util/delay.h ****   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  28:/usr/lib/avr/include/util/delay.h ****   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  29:/usr/lib/avr/include/util/delay.h ****   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  30:/usr/lib/avr/include/util/delay.h ****   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  31:/usr/lib/avr/include/util/delay.h ****   POSSIBILITY OF SUCH DAMAGE. */
+  32:/usr/lib/avr/include/util/delay.h **** 
+  33:/usr/lib/avr/include/util/delay.h **** /* $Id$ */
+  34:/usr/lib/avr/include/util/delay.h **** 
+  35:/usr/lib/avr/include/util/delay.h **** #ifndef _UTIL_DELAY_H_
+  36:/usr/lib/avr/include/util/delay.h **** #define _UTIL_DELAY_H_ 1
+  37:/usr/lib/avr/include/util/delay.h **** 
+  38:/usr/lib/avr/include/util/delay.h **** #ifndef __DOXYGEN__
+  39:/usr/lib/avr/include/util/delay.h **** #  ifndef __HAS_DELAY_CYCLES
+  40:/usr/lib/avr/include/util/delay.h **** #    define __HAS_DELAY_CYCLES 1
+  41:/usr/lib/avr/include/util/delay.h **** #  endif
+  42:/usr/lib/avr/include/util/delay.h **** #endif  /* __DOXYGEN__ */
+  43:/usr/lib/avr/include/util/delay.h **** 
+  44:/usr/lib/avr/include/util/delay.h **** #include <inttypes.h>
+  45:/usr/lib/avr/include/util/delay.h **** #include <util/delay_basic.h>
+  46:/usr/lib/avr/include/util/delay.h **** #include <math.h>
+  47:/usr/lib/avr/include/util/delay.h **** 
+  48:/usr/lib/avr/include/util/delay.h **** /** \file */
+  49:/usr/lib/avr/include/util/delay.h **** /** \defgroup util_delay <util/delay.h>: Convenience functions for busy-wait delay loops
+  50:/usr/lib/avr/include/util/delay.h ****     \code
+  51:/usr/lib/avr/include/util/delay.h ****     #define F_CPU 1000000UL  // 1 MHz
+  52:/usr/lib/avr/include/util/delay.h ****     //#define F_CPU 14.7456E6
+  53:/usr/lib/avr/include/util/delay.h ****     #include <util/delay.h>
+  54:/usr/lib/avr/include/util/delay.h ****     \endcode
+  55:/usr/lib/avr/include/util/delay.h **** 
+  56:/usr/lib/avr/include/util/delay.h ****     \note As an alternative method, it is possible to pass the
+  57:/usr/lib/avr/include/util/delay.h ****     F_CPU macro down to the compiler from the Makefile.
+  58:/usr/lib/avr/include/util/delay.h ****     Obviously, in that case, no \c \#define statement should be
+  59:/usr/lib/avr/include/util/delay.h ****     used.
+  60:/usr/lib/avr/include/util/delay.h **** 
+  61:/usr/lib/avr/include/util/delay.h ****     The functions in this header file are wrappers around the basic
+  62:/usr/lib/avr/include/util/delay.h ****     busy-wait functions from <util/delay_basic.h>.  They are meant as
+  63:/usr/lib/avr/include/util/delay.h ****     convenience functions where actual time values can be specified
+  64:/usr/lib/avr/include/util/delay.h ****     rather than a number of cycles to wait for.  The idea behind is
+  65:/usr/lib/avr/include/util/delay.h ****     that compile-time constant expressions will be eliminated by
+  66:/usr/lib/avr/include/util/delay.h ****     compiler optimization so floating-point expressions can be used
+  67:/usr/lib/avr/include/util/delay.h ****     to calculate the number of delay cycles needed based on the CPU
+  68:/usr/lib/avr/include/util/delay.h ****     frequency passed by the macro F_CPU.
+  69:/usr/lib/avr/include/util/delay.h **** 
+  70:/usr/lib/avr/include/util/delay.h ****     \note In order for these functions to work as intended, compiler
+  71:/usr/lib/avr/include/util/delay.h ****     optimizations <em>must</em> be enabled, and the delay time
+  72:/usr/lib/avr/include/util/delay.h ****     <em>must</em> be an expression that is a known constant at
+  73:/usr/lib/avr/include/util/delay.h ****     compile-time.  If these requirements are not met, the resulting
+  74:/usr/lib/avr/include/util/delay.h ****     delay will be much longer (and basically unpredictable), and
+  75:/usr/lib/avr/include/util/delay.h ****     applications that otherwise do not use floating-point calculations
+  76:/usr/lib/avr/include/util/delay.h ****     will experience severe code bloat by the floating-point library
+  77:/usr/lib/avr/include/util/delay.h ****     routines linked into the application.
+  78:/usr/lib/avr/include/util/delay.h **** 
+  79:/usr/lib/avr/include/util/delay.h ****     The functions available allow the specification of microsecond, and
+  80:/usr/lib/avr/include/util/delay.h ****     millisecond delays directly, using the application-supplied macro
+  81:/usr/lib/avr/include/util/delay.h ****     F_CPU as the CPU clock frequency (in Hertz).
+  82:/usr/lib/avr/include/util/delay.h **** 
+  83:/usr/lib/avr/include/util/delay.h **** */
+  84:/usr/lib/avr/include/util/delay.h **** 
+  85:/usr/lib/avr/include/util/delay.h **** #if !defined(__DOXYGEN__)
+  86:/usr/lib/avr/include/util/delay.h **** static __inline__ void _delay_us(double __us) __attribute__((__always_inline__));
+  87:/usr/lib/avr/include/util/delay.h **** static __inline__ void _delay_ms(double __ms) __attribute__((__always_inline__));
+  88:/usr/lib/avr/include/util/delay.h **** #endif
+  89:/usr/lib/avr/include/util/delay.h **** 
+  90:/usr/lib/avr/include/util/delay.h **** #ifndef F_CPU
+  91:/usr/lib/avr/include/util/delay.h **** /* prevent compiler error by supplying a default */
+  92:/usr/lib/avr/include/util/delay.h **** # warning "F_CPU not defined for <util/delay.h>"
+  93:/usr/lib/avr/include/util/delay.h **** /** \ingroup util_delay
+  94:/usr/lib/avr/include/util/delay.h ****     \def F_CPU
+  95:/usr/lib/avr/include/util/delay.h ****     \brief CPU frequency in Hz
+  96:/usr/lib/avr/include/util/delay.h **** 
+  97:/usr/lib/avr/include/util/delay.h ****     The macro F_CPU specifies the CPU frequency to be considered by
+  98:/usr/lib/avr/include/util/delay.h ****     the delay macros.  This macro is normally supplied by the
+  99:/usr/lib/avr/include/util/delay.h ****     environment (e.g. from within a project header, or the project's
+ 100:/usr/lib/avr/include/util/delay.h ****     Makefile).  The value 1 MHz here is only provided as a "vanilla"
+ 101:/usr/lib/avr/include/util/delay.h ****     fallback if no such user-provided definition could be found.
+ 102:/usr/lib/avr/include/util/delay.h **** 
+ 103:/usr/lib/avr/include/util/delay.h ****     In terms of the delay functions, the CPU frequency can be given as
+ 104:/usr/lib/avr/include/util/delay.h ****     a floating-point constant (e.g. 3.6864E6 for 3.6864 MHz).
+ 105:/usr/lib/avr/include/util/delay.h ****     However, the macros in <util/setbaud.h> require it to be an
+ 106:/usr/lib/avr/include/util/delay.h ****     integer value.
+ 107:/usr/lib/avr/include/util/delay.h ****  */
+ 108:/usr/lib/avr/include/util/delay.h **** # define F_CPU 1000000UL
+ 109:/usr/lib/avr/include/util/delay.h **** #endif
+ 110:/usr/lib/avr/include/util/delay.h **** 
+ 111:/usr/lib/avr/include/util/delay.h **** #ifndef __OPTIMIZE__
+ 112:/usr/lib/avr/include/util/delay.h **** # warning "Compiler optimizations disabled; functions from <util/delay.h> won't work as designed"
+ 113:/usr/lib/avr/include/util/delay.h **** #endif
+ 114:/usr/lib/avr/include/util/delay.h **** 
+ 115:/usr/lib/avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+ 116:/usr/lib/avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+ 117:/usr/lib/avr/include/util/delay.h ****   __STDC_HOSTED__
+ 118:/usr/lib/avr/include/util/delay.h **** #  include <math.h>
+ 119:/usr/lib/avr/include/util/delay.h **** #endif
+ 120:/usr/lib/avr/include/util/delay.h **** 
+ 121:/usr/lib/avr/include/util/delay.h **** /**
+ 122:/usr/lib/avr/include/util/delay.h ****    \ingroup util_delay
+ 123:/usr/lib/avr/include/util/delay.h **** 
+ 124:/usr/lib/avr/include/util/delay.h ****    Perform a delay of \c __ms milliseconds, using _delay_loop_2().
+ 125:/usr/lib/avr/include/util/delay.h **** 
+ 126:/usr/lib/avr/include/util/delay.h ****    The macro F_CPU is supposed to be defined to a
+ 127:/usr/lib/avr/include/util/delay.h ****    constant defining the CPU clock frequency (in Hertz).
+ 128:/usr/lib/avr/include/util/delay.h **** 
+ 129:/usr/lib/avr/include/util/delay.h ****    The maximal possible delay is 262.14 ms / F_CPU in MHz.
+ 130:/usr/lib/avr/include/util/delay.h **** 
+ 131:/usr/lib/avr/include/util/delay.h ****    When the user request delay which exceed the maximum possible one,
+ 132:/usr/lib/avr/include/util/delay.h ****    _delay_ms() provides a decreased resolution functionality. In this
+ 133:/usr/lib/avr/include/util/delay.h ****    mode _delay_ms() will work with a resolution of 1/10 ms, providing
+ 134:/usr/lib/avr/include/util/delay.h ****    delays up to 6.5535 seconds (independent from CPU frequency).  The
+ 135:/usr/lib/avr/include/util/delay.h ****    user will not be informed about decreased resolution.
+ 136:/usr/lib/avr/include/util/delay.h **** 
+ 137:/usr/lib/avr/include/util/delay.h ****    If the avr-gcc toolchain has __builtin_avr_delay_cycles()
+ 138:/usr/lib/avr/include/util/delay.h ****    support, maximal possible delay is 4294967.295 ms/ F_CPU in MHz. For
+ 139:/usr/lib/avr/include/util/delay.h ****    values greater than the maximal possible delay, overflows results in
+ 140:/usr/lib/avr/include/util/delay.h ****    no delay i.e., 0ms.
+ 141:/usr/lib/avr/include/util/delay.h **** 
+ 142:/usr/lib/avr/include/util/delay.h ****    Conversion of \c __ms into clock cycles may not always result in
+ 143:/usr/lib/avr/include/util/delay.h ****    integer.  By default, the clock cycles rounded up to next
+ 144:/usr/lib/avr/include/util/delay.h ****    integer. This ensures that the user gets at least \c __ms
+ 145:/usr/lib/avr/include/util/delay.h ****    microseconds of delay.
+ 146:/usr/lib/avr/include/util/delay.h **** 
+ 147:/usr/lib/avr/include/util/delay.h ****    Alternatively, by defining the macro \c __DELAY_ROUND_DOWN__, or
+ 148:/usr/lib/avr/include/util/delay.h ****    \c __DELAY_ROUND_CLOSEST__, before including this header file, the
+ 149:/usr/lib/avr/include/util/delay.h ****    algorithm can be made to round down, or round to closest integer,
+ 150:/usr/lib/avr/include/util/delay.h ****    respectively.
+ 151:/usr/lib/avr/include/util/delay.h **** 
+ 152:/usr/lib/avr/include/util/delay.h ****    \note
+ 153:/usr/lib/avr/include/util/delay.h **** 
+ 154:/usr/lib/avr/include/util/delay.h ****    The implementation of _delay_ms() based on
+ 155:/usr/lib/avr/include/util/delay.h ****    __builtin_avr_delay_cycles() is not backward compatible with older
+ 156:/usr/lib/avr/include/util/delay.h ****    implementations.  In order to get functionality backward compatible
+ 157:/usr/lib/avr/include/util/delay.h ****    with previous versions, the macro \c "__DELAY_BACKWARD_COMPATIBLE__"
+ 158:/usr/lib/avr/include/util/delay.h ****    must be defined before including this header file. Also, the
+ 159:/usr/lib/avr/include/util/delay.h ****    backward compatible algorithm will be chosen if the code is
+ 160:/usr/lib/avr/include/util/delay.h ****    compiled in a <em>freestanding environment</em> (GCC option
+ 161:/usr/lib/avr/include/util/delay.h ****    \c -ffreestanding), as the math functions required for rounding are
+ 162:/usr/lib/avr/include/util/delay.h ****    not available to the compiler then.
+ 163:/usr/lib/avr/include/util/delay.h **** 
+ 164:/usr/lib/avr/include/util/delay.h ****  */
+ 165:/usr/lib/avr/include/util/delay.h **** void
+ 166:/usr/lib/avr/include/util/delay.h **** _delay_ms(double __ms)
+ 167:/usr/lib/avr/include/util/delay.h **** {
+ 168:/usr/lib/avr/include/util/delay.h **** 	double __tmp ;
+ 169:/usr/lib/avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+ 170:/usr/lib/avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+ 171:/usr/lib/avr/include/util/delay.h ****   __STDC_HOSTED__
+ 172:/usr/lib/avr/include/util/delay.h **** 	uint32_t __ticks_dc;
+ 173:/usr/lib/avr/include/util/delay.h **** 	extern void __builtin_avr_delay_cycles(unsigned long);
+ 174:/usr/lib/avr/include/util/delay.h **** 	__tmp = ((F_CPU) / 1e3) * __ms;
+ 175:/usr/lib/avr/include/util/delay.h **** 
+ 176:/usr/lib/avr/include/util/delay.h **** 	#if defined(__DELAY_ROUND_DOWN__)
+ 177:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)fabs(__tmp);
+ 178:/usr/lib/avr/include/util/delay.h **** 
+ 179:/usr/lib/avr/include/util/delay.h **** 	#elif defined(__DELAY_ROUND_CLOSEST__)
+ 180:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(fabs(__tmp)+0.5);
+ 181:/usr/lib/avr/include/util/delay.h **** 
+ 182:/usr/lib/avr/include/util/delay.h **** 	#else
+ 183:/usr/lib/avr/include/util/delay.h **** 		//round up by default
+ 184:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+ 185:/usr/lib/avr/include/util/delay.h **** 	#endif
+ 186:/usr/lib/avr/include/util/delay.h **** 
+ 187:/usr/lib/avr/include/util/delay.h **** 	__builtin_avr_delay_cycles(__ticks_dc);
+ 188:/usr/lib/avr/include/util/delay.h **** 
+ 189:/usr/lib/avr/include/util/delay.h **** #else
+ 190:/usr/lib/avr/include/util/delay.h **** 	uint16_t __ticks;
+ 191:/usr/lib/avr/include/util/delay.h **** 	__tmp = ((F_CPU) / 4e3) * __ms;
+ 192:/usr/lib/avr/include/util/delay.h **** 	if (__tmp < 1.0)
+ 193:/usr/lib/avr/include/util/delay.h **** 		__ticks = 1;
+ 194:/usr/lib/avr/include/util/delay.h **** 	else if (__tmp > 65535)
+ 195:/usr/lib/avr/include/util/delay.h **** 	{
+ 196:/usr/lib/avr/include/util/delay.h **** 		//	__ticks = requested delay in 1/10 ms
+ 197:/usr/lib/avr/include/util/delay.h **** 		__ticks = (uint16_t) (__ms * 10.0);
+ 198:/usr/lib/avr/include/util/delay.h **** 		while(__ticks)
+ 199:/usr/lib/avr/include/util/delay.h **** 		{
+ 200:/usr/lib/avr/include/util/delay.h **** 			// wait 1/10 ms
+ 201:/usr/lib/avr/include/util/delay.h **** 			_delay_loop_2(((F_CPU) / 4e3) / 10);
+ 202:/usr/lib/avr/include/util/delay.h **** 			__ticks --;
+ 203:/usr/lib/avr/include/util/delay.h **** 		}
+ 204:/usr/lib/avr/include/util/delay.h **** 		return;
+ 205:/usr/lib/avr/include/util/delay.h **** 	}
+ 206:/usr/lib/avr/include/util/delay.h **** 	else
+ 207:/usr/lib/avr/include/util/delay.h **** 		__ticks = (uint16_t)__tmp;
+ 208:/usr/lib/avr/include/util/delay.h **** 	_delay_loop_2(__ticks);
+ 209:/usr/lib/avr/include/util/delay.h **** #endif
+ 210:/usr/lib/avr/include/util/delay.h **** }
+ 211:/usr/lib/avr/include/util/delay.h **** 
+ 212:/usr/lib/avr/include/util/delay.h **** /**
+ 213:/usr/lib/avr/include/util/delay.h ****    \ingroup util_delay
+ 214:/usr/lib/avr/include/util/delay.h **** 
+ 215:/usr/lib/avr/include/util/delay.h ****    Perform a delay of \c __us microseconds, using _delay_loop_1().
+ 216:/usr/lib/avr/include/util/delay.h **** 
+ 217:/usr/lib/avr/include/util/delay.h ****    The macro F_CPU is supposed to be defined to a
+ 218:/usr/lib/avr/include/util/delay.h ****    constant defining the CPU clock frequency (in Hertz).
+ 219:/usr/lib/avr/include/util/delay.h **** 
+ 220:/usr/lib/avr/include/util/delay.h ****    The maximal possible delay is 768 us / F_CPU in MHz.
+ 221:/usr/lib/avr/include/util/delay.h **** 
+ 222:/usr/lib/avr/include/util/delay.h ****    If the user requests a delay greater than the maximal possible one,
+ 223:/usr/lib/avr/include/util/delay.h ****    _delay_us() will automatically call _delay_ms() instead.  The user
+ 224:/usr/lib/avr/include/util/delay.h ****    will not be informed about this case.
+ 225:/usr/lib/avr/include/util/delay.h **** 
+ 226:/usr/lib/avr/include/util/delay.h ****    If the avr-gcc toolchain has __builtin_avr_delay_cycles()
+ 227:/usr/lib/avr/include/util/delay.h ****    support, maximal possible delay is 4294967.295 us/ F_CPU in MHz. For
+ 228:/usr/lib/avr/include/util/delay.h ****    values greater than the maximal possible delay, overflow results in
+ 229:/usr/lib/avr/include/util/delay.h ****    no delay i.e., 0us.
+ 230:/usr/lib/avr/include/util/delay.h **** 
+ 231:/usr/lib/avr/include/util/delay.h ****    Conversion of \c __us into clock cycles may not always result in
+ 232:/usr/lib/avr/include/util/delay.h ****    integer.  By default, the clock cycles rounded up to next
+ 233:/usr/lib/avr/include/util/delay.h ****    integer. This ensures that the user gets at least \c __us
+ 234:/usr/lib/avr/include/util/delay.h ****    microseconds of delay.
+ 235:/usr/lib/avr/include/util/delay.h **** 
+ 236:/usr/lib/avr/include/util/delay.h ****    Alternatively, by defining the macro \c __DELAY_ROUND_DOWN__, or
+ 237:/usr/lib/avr/include/util/delay.h ****    \c __DELAY_ROUND_CLOSEST__, before including this header file, the
+ 238:/usr/lib/avr/include/util/delay.h ****    algorithm can be made to round down, or round to closest integer,
+ 239:/usr/lib/avr/include/util/delay.h ****    respectively.
+ 240:/usr/lib/avr/include/util/delay.h **** 
+ 241:/usr/lib/avr/include/util/delay.h ****    \note
+ 242:/usr/lib/avr/include/util/delay.h **** 
+ 243:/usr/lib/avr/include/util/delay.h ****    The implementation of _delay_ms() based on
+ 244:/usr/lib/avr/include/util/delay.h ****    __builtin_avr_delay_cycles() is not backward compatible with older
+ 245:/usr/lib/avr/include/util/delay.h ****    implementations.  In order to get functionality backward compatible
+ 246:/usr/lib/avr/include/util/delay.h ****    with previous versions, the macro \c __DELAY_BACKWARD_COMPATIBLE__
+ 247:/usr/lib/avr/include/util/delay.h ****    must be defined before including this header file. Also, the
+ 248:/usr/lib/avr/include/util/delay.h ****    backward compatible algorithm will be chosen if the code is
+ 249:/usr/lib/avr/include/util/delay.h ****    compiled in a <em>freestanding environment</em> (GCC option
+ 250:/usr/lib/avr/include/util/delay.h ****    \c -ffreestanding), as the math functions required for rounding are
+ 251:/usr/lib/avr/include/util/delay.h ****    not available to the compiler then.
+ 252:/usr/lib/avr/include/util/delay.h **** 
+ 253:/usr/lib/avr/include/util/delay.h ****  */
+ 254:/usr/lib/avr/include/util/delay.h **** void
+ 255:/usr/lib/avr/include/util/delay.h **** _delay_us(double __us)
+ 256:/usr/lib/avr/include/util/delay.h **** {
+ 257:/usr/lib/avr/include/util/delay.h **** 	double __tmp ;
+ 258:/usr/lib/avr/include/util/delay.h **** #if __HAS_DELAY_CYCLES && defined(__OPTIMIZE__) && \
+ 259:/usr/lib/avr/include/util/delay.h ****   !defined(__DELAY_BACKWARD_COMPATIBLE__) &&	   \
+ 260:/usr/lib/avr/include/util/delay.h ****   __STDC_HOSTED__
+ 261:/usr/lib/avr/include/util/delay.h **** 	uint32_t __ticks_dc;
+ 262:/usr/lib/avr/include/util/delay.h **** 	extern void __builtin_avr_delay_cycles(unsigned long);
+ 263:/usr/lib/avr/include/util/delay.h **** 	__tmp = ((F_CPU) / 1e6) * __us;
+ 264:/usr/lib/avr/include/util/delay.h **** 
+ 265:/usr/lib/avr/include/util/delay.h **** 	#if defined(__DELAY_ROUND_DOWN__)
+ 266:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)fabs(__tmp);
+ 267:/usr/lib/avr/include/util/delay.h **** 
+ 268:/usr/lib/avr/include/util/delay.h **** 	#elif defined(__DELAY_ROUND_CLOSEST__)
+ 269:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(fabs(__tmp)+0.5);
+ 270:/usr/lib/avr/include/util/delay.h **** 
+ 271:/usr/lib/avr/include/util/delay.h **** 	#else
+ 272:/usr/lib/avr/include/util/delay.h **** 		//round up by default
+ 273:/usr/lib/avr/include/util/delay.h **** 		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+ 274:/usr/lib/avr/include/util/delay.h **** 	#endif
+ 275:/usr/lib/avr/include/util/delay.h **** 
+ 276:/usr/lib/avr/include/util/delay.h **** 	__builtin_avr_delay_cycles(__ticks_dc);
+  74               		.loc 2 276 0
+  75 0028 8FE8      		ldi r24,lo8(399)
+  76 002a 91E0      		ldi r25,hi8(399)
+  77 002c 0197      	1:	sbiw r24,1
+  78 002e 01F4      		brne 1b
+  79 0030 00C0      		rjmp .
+  80 0032 0000      		nop
+  81               	.LVL1:
+  82 0034 0895      		ret
+  83               	.LBE19:
+  84               	.LBE18:
+  85               		.cfi_endproc
+  86               	.LFE8:
+  88               	.global	I2C_Write
+  90               	I2C_Write:
+  91               	.LFB9:
+  28:i2c.h         ****     _delay_us(100);
+  29:i2c.h         **** }
+  30:i2c.h         **** 
+  31:i2c.h         **** uint8_t I2C_Write(uint8_t data) {
+  92               		.loc 1 31 0
+  93               		.cfi_startproc
+  94               	.LVL2:
+  95               	/* prologue: function */
+  96               	/* frame size = 0 */
+  97               	/* stack size = 0 */
+  98               	.L__stack_usage = 0
+  32:i2c.h         ****     TWDR = data;              /* Copy data to TWI data register */
+  99               		.loc 1 32 0
+ 100 0036 8093 BB00 		sts 187,r24
+  33:i2c.h         ****     TWCR = (1<<TWINT)|(1<<TWEN); /* Enable TWI and clear interrupt flag */
+ 101               		.loc 1 33 0
+ 102 003a 84E8      		ldi r24,lo8(-124)
+ 103               	.LVL3:
+ 104 003c 8093 BC00 		sts 188,r24
+ 105               	.LVL4:
+ 106               	.L8:
+  34:i2c.h         ****     while (!(TWCR & (1<<TWINT)));  /* Wait for TWINT flag to set */
+ 107               		.loc 1 34 0 discriminator 1
+ 108 0040 8091 BC00 		lds r24,188
+ 109 0044 87FF      		sbrs r24,7
+ 110 0046 00C0      		rjmp .L8
+  35:i2c.h         ****     
+  36:i2c.h         ****     // Check status
+  37:i2c.h         ****     uint8_t status = TWSR & 0xF8;
+ 111               		.loc 1 37 0
+ 112 0048 9091 B900 		lds r25,185
+ 113 004c 987F      		andi r25,lo8(-8)
+ 114               	.LVL5:
+  38:i2c.h         ****     if (status == 0x28 || status == 0x18) { /* 0x28 = TW_MT_DATA_ACK, 0x18 = TW_MT_SLA_ACK */
+ 115               		.loc 1 38 0
+ 116 004e 9832      		cpi r25,lo8(40)
+ 117 0050 01F0      		breq .L11
+  39:i2c.h         ****         return 0;  // ACK received
+ 118               		.loc 1 39 0 discriminator 1
+ 119 0052 81E0      		ldi r24,lo8(1)
+ 120 0054 9831      		cpi r25,lo8(24)
+ 121 0056 01F4      		brne .L9
+ 122               	.L11:
+ 123               		.loc 1 39 0 is_stmt 0
+ 124 0058 80E0      		ldi r24,0
+ 125               	.L9:
+  40:i2c.h         ****     } else {
+  41:i2c.h         ****         return 1;  // NACK or error
+  42:i2c.h         ****     }
+  43:i2c.h         **** }
+ 126               		.loc 1 43 0 is_stmt 1
+ 127 005a 0895      		ret
+ 128               		.cfi_endproc
+ 129               	.LFE9:
+ 131               	.global	LCD_EnablePulse
+ 133               	LCD_EnablePulse:
+ 134               	.LFB10:
+  44:i2c.h         **** 
+  45:i2c.h         **** /* LCD Functions */
+  46:i2c.h         **** void LCD_EnablePulse(uint8_t data) {
+ 135               		.loc 1 46 0
+ 136               		.cfi_startproc
+ 137               	.LVL6:
+ 138 005c CF93      		push r28
+ 139               	.LCFI0:
+ 140               		.cfi_def_cfa_offset 3
+ 141               		.cfi_offset 28, -2
+ 142               	/* prologue: function */
+ 143               	/* frame size = 0 */
+ 144               	/* stack size = 1 */
+ 145               	.L__stack_usage = 1
+ 146 005e C82F      		mov r28,r24
+  47:i2c.h         ****     I2C_Write(data | ENABLE);  /* Enable bit high */
+ 147               		.loc 1 47 0
+ 148 0060 8460      		ori r24,lo8(4)
+ 149               	.LVL7:
+ 150 0062 0E94 0000 		call I2C_Write
+ 151               	.LVL8:
+ 152               	.LBB20:
+ 153               	.LBB21:
+ 154               		.loc 2 276 0
+ 155 0066 85E0      		ldi r24,lo8(5)
+ 156 0068 8A95      	1:	dec r24
+ 157 006a 01F4      		brne 1b
+ 158 006c 0000      		nop
+ 159               	.LVL9:
+ 160               	.LBE21:
+ 161               	.LBE20:
+  48:i2c.h         ****     _delay_us(1);              /* Enable pulse width */
+  49:i2c.h         ****     I2C_Write(data & ~ENABLE); /* Enable bit low */
+ 162               		.loc 1 49 0
+ 163 006e 8C2F      		mov r24,r28
+ 164 0070 8B7F      		andi r24,lo8(-5)
+ 165 0072 0E94 0000 		call I2C_Write
+ 166               	.LVL10:
+ 167               	.LBB22:
+ 168               	.LBB23:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 169               		.loc 2 187 0
+ 170 0076 8FE3      		ldi r24,lo8(7999)
+ 171 0078 9FE1      		ldi r25,hi8(7999)
+ 172 007a 0197      	1:	sbiw r24,1
+ 173 007c 01F4      		brne 1b
+ 174 007e 00C0      		rjmp .
+ 175 0080 0000      		nop
+ 176               	.LVL11:
+ 177               	/* epilogue start */
+ 178               	.LBE23:
+ 179               	.LBE22:
+  50:i2c.h         ****     _delay_ms(2);              /* Wait for the command to execute */
+  51:i2c.h         **** }
+ 180               		.loc 1 51 0
+ 181 0082 CF91      		pop r28
+ 182               	.LVL12:
+ 183 0084 0895      		ret
+ 184               		.cfi_endproc
+ 185               	.LFE10:
+ 187               	.global	LCD_Command
+ 189               	LCD_Command:
+ 190               	.LFB11:
+  52:i2c.h         **** 
+  53:i2c.h         **** void LCD_Command(uint8_t cmnd) {
+ 191               		.loc 1 53 0
+ 192               		.cfi_startproc
+ 193               	.LVL13:
+ 194 0086 CF93      		push r28
+ 195               	.LCFI1:
+ 196               		.cfi_def_cfa_offset 3
+ 197               		.cfi_offset 28, -2
+ 198               	/* prologue: function */
+ 199               	/* frame size = 0 */
+ 200               	/* stack size = 1 */
+ 201               	.L__stack_usage = 1
+ 202 0088 C82F      		mov r28,r24
+ 203               	.LVL14:
+  54:i2c.h         ****     uint8_t highNibble = (cmnd & 0xF0) | LCD_BACKLIGHT;
+  55:i2c.h         ****     uint8_t lowNibble = ((cmnd << 4) & 0xF0) | LCD_BACKLIGHT;
+  56:i2c.h         **** 
+  57:i2c.h         ****     I2C_Start();
+ 204               		.loc 1 57 0
+ 205 008a 0E94 0000 		call I2C_Start
+ 206               	.LVL15:
+  58:i2c.h         ****     I2C_Write(LCD_I2C_ADDRESS << 1);  /* Send the I2C address with write mode */
+ 207               		.loc 1 58 0
+ 208 008e 8EE4      		ldi r24,lo8(78)
+ 209 0090 0E94 0000 		call I2C_Write
+ 210               	.LVL16:
+  59:i2c.h         ****     
+  60:i2c.h         ****     LCD_EnablePulse(highNibble);      /* Send the upper nibble */
+ 211               		.loc 1 60 0
+ 212 0094 8C2F      		mov r24,r28
+ 213 0096 807F      		andi r24,lo8(-16)
+ 214 0098 8860      		ori r24,lo8(8)
+ 215               	.LVL17:
+ 216 009a 0E94 0000 		call LCD_EnablePulse
+ 217               	.LVL18:
+  61:i2c.h         ****     LCD_EnablePulse(lowNibble);       /* Send the lower nibble */
+ 218               		.loc 1 61 0
+ 219 009e 20E1      		ldi r18,lo8(16)
+ 220 00a0 C29F      		mul r28,r18
+ 221 00a2 C001      		movw r24,r0
+ 222 00a4 1124      		clr __zero_reg__
+ 223 00a6 8860      		ori r24,lo8(8)
+ 224 00a8 0E94 0000 		call LCD_EnablePulse
+ 225               	.LVL19:
+ 226               	/* epilogue start */
+  62:i2c.h         ****     
+  63:i2c.h         ****     I2C_Stop();
+  64:i2c.h         **** }
+ 227               		.loc 1 64 0
+ 228 00ac CF91      		pop r28
+ 229               	.LVL20:
+  63:i2c.h         **** }
+ 230               		.loc 1 63 0
+ 231 00ae 0C94 0000 		jmp I2C_Stop
+ 232               	.LVL21:
+ 233               		.cfi_endproc
+ 234               	.LFE11:
+ 236               	.global	LCD_Char
+ 238               	LCD_Char:
+ 239               	.LFB12:
+  65:i2c.h         **** 
+  66:i2c.h         **** void LCD_Char(uint8_t data) {
+ 240               		.loc 1 66 0
+ 241               		.cfi_startproc
+ 242               	.LVL22:
+ 243 00b2 CF93      		push r28
+ 244               	.LCFI2:
+ 245               		.cfi_def_cfa_offset 3
+ 246               		.cfi_offset 28, -2
+ 247               	/* prologue: function */
+ 248               	/* frame size = 0 */
+ 249               	/* stack size = 1 */
+ 250               	.L__stack_usage = 1
+ 251 00b4 C82F      		mov r28,r24
+ 252               	.LVL23:
+  67:i2c.h         ****     uint8_t highNibble = (data & 0xF0) | REGISTER_SELECT | LCD_BACKLIGHT;
+  68:i2c.h         ****     uint8_t lowNibble = ((data << 4) & 0xF0) | REGISTER_SELECT | LCD_BACKLIGHT;
+  69:i2c.h         **** 
+  70:i2c.h         ****     I2C_Start();
+ 253               		.loc 1 70 0
+ 254 00b6 0E94 0000 		call I2C_Start
+ 255               	.LVL24:
+  71:i2c.h         ****     I2C_Write(LCD_I2C_ADDRESS << 1);  /* Send the I2C address with write mode */
+ 256               		.loc 1 71 0
+ 257 00ba 8EE4      		ldi r24,lo8(78)
+ 258 00bc 0E94 0000 		call I2C_Write
+ 259               	.LVL25:
+  72:i2c.h         ****     
+  73:i2c.h         ****     LCD_EnablePulse(highNibble);      /* Send the upper nibble with RS=1 for data */
+ 260               		.loc 1 73 0
+ 261 00c0 8C2F      		mov r24,r28
+ 262 00c2 807F      		andi r24,lo8(-16)
+ 263 00c4 8960      		ori r24,lo8(9)
+ 264               	.LVL26:
+ 265 00c6 0E94 0000 		call LCD_EnablePulse
+ 266               	.LVL27:
+  74:i2c.h         ****     LCD_EnablePulse(lowNibble);       /* Send the lower nibble with RS=1 */
+ 267               		.loc 1 74 0
+ 268 00ca 20E1      		ldi r18,lo8(16)
+ 269 00cc C29F      		mul r28,r18
+ 270 00ce C001      		movw r24,r0
+ 271 00d0 1124      		clr __zero_reg__
+ 272 00d2 8960      		ori r24,lo8(9)
+ 273 00d4 0E94 0000 		call LCD_EnablePulse
+ 274               	.LVL28:
+ 275               	/* epilogue start */
+  75:i2c.h         ****     
+  76:i2c.h         ****     I2C_Stop();
+  77:i2c.h         **** }
+ 276               		.loc 1 77 0
+ 277 00d8 CF91      		pop r28
+ 278               	.LVL29:
+  76:i2c.h         **** }
+ 279               		.loc 1 76 0
+ 280 00da 0C94 0000 		jmp I2C_Stop
+ 281               	.LVL30:
+ 282               		.cfi_endproc
+ 283               	.LFE12:
+ 285               	.global	LCD_Init
+ 287               	LCD_Init:
+ 288               	.LFB13:
+  78:i2c.h         **** 
+  79:i2c.h         **** void LCD_Init(void) {
+ 289               		.loc 1 79 0
+ 290               		.cfi_startproc
+ 291               	/* prologue: function */
+ 292               	/* frame size = 0 */
+ 293               	/* stack size = 0 */
+ 294               	.L__stack_usage = 0
+  80:i2c.h         ****     I2C_Init();                /* Initialize I2C */
+ 295               		.loc 1 80 0
+ 296 00de 0E94 0000 		call I2C_Init
+ 297               	.LVL31:
+ 298               	.LBB24:
+ 299               	.LBB25:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 300               		.loc 2 187 0
+ 301 00e2 2FEF      		ldi r18,lo8(63999)
+ 302 00e4 89EF      		ldi r24,hi8(63999)
+ 303 00e6 90E0      		ldi r25,hlo8(63999)
+ 304 00e8 2150      	1:	subi r18,1
+ 305 00ea 8040      		sbci r24,0
+ 306 00ec 9040      		sbci r25,0
+ 307 00ee 01F4      		brne 1b
+ 308 00f0 00C0      		rjmp .
+ 309 00f2 0000      		nop
+ 310               	.LVL32:
+ 311               	.LBE25:
+ 312               	.LBE24:
+  81:i2c.h         ****     _delay_ms(20);             /* LCD Power ON delay */
+  82:i2c.h         ****     
+  83:i2c.h         ****     LCD_Command(0x02);         /* Initialize for 4-bit mode */
+ 313               		.loc 1 83 0
+ 314 00f4 82E0      		ldi r24,lo8(2)
+ 315 00f6 0E94 0000 		call LCD_Command
+ 316               	.LVL33:
+  84:i2c.h         ****     LCD_Command(0x28);         /* 2 lines, 5x7 matrix in 4-bit mode */
+ 317               		.loc 1 84 0
+ 318 00fa 88E2      		ldi r24,lo8(40)
+ 319 00fc 0E94 0000 		call LCD_Command
+ 320               	.LVL34:
+  85:i2c.h         ****     LCD_Command(0x0C);         /* Display ON, Cursor OFF */
+ 321               		.loc 1 85 0
+ 322 0100 8CE0      		ldi r24,lo8(12)
+ 323 0102 0E94 0000 		call LCD_Command
+ 324               	.LVL35:
+  86:i2c.h         ****     LCD_Command(0x06);         /* Auto increment cursor */
+ 325               		.loc 1 86 0
+ 326 0106 86E0      		ldi r24,lo8(6)
+ 327 0108 0E94 0000 		call LCD_Command
+ 328               	.LVL36:
+  87:i2c.h         ****     LCD_Command(0x01);         /* Clear display */
+ 329               		.loc 1 87 0
+ 330 010c 81E0      		ldi r24,lo8(1)
+ 331 010e 0E94 0000 		call LCD_Command
+ 332               	.LVL37:
+ 333               	.LBB26:
+ 334               	.LBB27:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 335               		.loc 2 187 0
+ 336 0112 8FE3      		ldi r24,lo8(7999)
+ 337 0114 9FE1      		ldi r25,hi8(7999)
+ 338 0116 0197      	1:	sbiw r24,1
+ 339 0118 01F4      		brne 1b
+ 340 011a 00C0      		rjmp .
+ 341 011c 0000      		nop
+ 342               	.LVL38:
+ 343 011e 0895      		ret
+ 344               	.LBE27:
+ 345               	.LBE26:
+ 346               		.cfi_endproc
+ 347               	.LFE13:
+ 349               	.global	LCD_SetCursor
+ 351               	LCD_SetCursor:
+ 352               	.LFB14:
+  88:i2c.h         ****     _delay_ms(2);
+  89:i2c.h         **** }
+  90:i2c.h         **** 
+  91:i2c.h         **** void LCD_SetCursor(uint8_t row, uint8_t col) {
+ 353               		.loc 1 91 0
+ 354               		.cfi_startproc
+ 355               	.LVL39:
+ 356               	/* prologue: function */
+ 357               	/* frame size = 0 */
+ 358               	/* stack size = 0 */
+ 359               	.L__stack_usage = 0
+  92:i2c.h         ****     uint8_t address;
+  93:i2c.h         ****     if (row == 0) {
+ 360               		.loc 1 93 0
+ 361 0120 8111      		cpse r24,__zero_reg__
+ 362 0122 00C0      		rjmp .L18
+  94:i2c.h         ****         address = 0x80 + col; // Move to column of row 0
+ 363               		.loc 1 94 0
+ 364 0124 80E8      		ldi r24,lo8(-128)
+ 365               	.LVL40:
+ 366 0126 00C0      		rjmp .L20
+ 367               	.LVL41:
+ 368               	.L18:
+  95:i2c.h         ****     } else {
+  96:i2c.h         ****         address = 0xC0 + col; // Move to column of row 1
+ 369               		.loc 1 96 0
+ 370 0128 80EC      		ldi r24,lo8(-64)
+ 371               	.LVL42:
+ 372               	.L20:
+ 373 012a 860F      		add r24,r22
+ 374               	.LVL43:
+  97:i2c.h         ****     }
+  98:i2c.h         ****     LCD_Command(address);  // Send command to move the cursor
+ 375               		.loc 1 98 0
+ 376 012c 0C94 0000 		jmp LCD_Command
+ 377               	.LVL44:
+ 378               		.cfi_endproc
+ 379               	.LFE14:
+ 381               	.global	LCD_String
+ 383               	LCD_String:
+ 384               	.LFB15:
+  99:i2c.h         **** }
+ 100:i2c.h         **** 
+ 101:i2c.h         **** void LCD_String(char *str) {
+ 385               		.loc 1 101 0
+ 386               		.cfi_startproc
+ 387               	.LVL45:
+ 388 0130 CF93      		push r28
+ 389               	.LCFI3:
+ 390               		.cfi_def_cfa_offset 3
+ 391               		.cfi_offset 28, -2
+ 392 0132 DF93      		push r29
+ 393               	.LCFI4:
+ 394               		.cfi_def_cfa_offset 4
+ 395               		.cfi_offset 29, -3
+ 396               	/* prologue: function */
+ 397               	/* frame size = 0 */
+ 398               	/* stack size = 2 */
+ 399               	.L__stack_usage = 2
+ 400 0134 EC01      		movw r28,r24
+ 401               	.LVL46:
+ 402               	.L22:
+ 102:i2c.h         ****     while (*str) {
+ 403               		.loc 1 102 0
+ 404 0136 8991      		ld r24,Y+
+ 405               	.LVL47:
+ 406 0138 8823      		tst r24
+ 407 013a 01F0      		breq .L24
+ 408               	.LVL48:
+ 103:i2c.h         ****         LCD_Char(*str++);
+ 409               		.loc 1 103 0
+ 410 013c 0E94 0000 		call LCD_Char
+ 411               	.LVL49:
+ 412 0140 00C0      		rjmp .L22
+ 413               	.LVL50:
+ 414               	.L24:
+ 415               	/* epilogue start */
+ 104:i2c.h         ****     }
+ 105:i2c.h         **** }
+ 416               		.loc 1 105 0
+ 417 0142 DF91      		pop r29
+ 418 0144 CF91      		pop r28
+ 419               	.LVL51:
+ 420 0146 0895      		ret
+ 421               		.cfi_endproc
+ 422               	.LFE15:
+ 424               	.global	LCD_Clear
+ 426               	LCD_Clear:
+ 427               	.LFB16:
+ 106:i2c.h         **** 
+ 107:i2c.h         **** void LCD_Clear(void) {
+ 428               		.loc 1 107 0
+ 429               		.cfi_startproc
+ 430               	/* prologue: function */
+ 431               	/* frame size = 0 */
+ 432               	/* stack size = 0 */
+ 433               	.L__stack_usage = 0
+ 108:i2c.h         ****     LCD_Command(0x01);  // 0x01 is the command to clear the display
+ 434               		.loc 1 108 0
+ 435 0148 81E0      		ldi r24,lo8(1)
+ 436 014a 0E94 0000 		call LCD_Command
+ 437               	.LVL52:
+ 438               	.LBB28:
+ 439               	.LBB29:
+ 187:/usr/lib/avr/include/util/delay.h **** 
+ 440               		.loc 2 187 0
+ 441 014e 8FE3      		ldi r24,lo8(7999)
+ 442 0150 9FE1      		ldi r25,hi8(7999)
+ 443 0152 0197      	1:	sbiw r24,1
+ 444 0154 01F4      		brne 1b
+ 445 0156 00C0      		rjmp .
+ 446 0158 0000      		nop
+ 447               	.LVL53:
+ 448 015a 0895      		ret
+ 449               	.LBE29:
+ 450               	.LBE28:
+ 451               		.cfi_endproc
+ 452               	.LFE16:
+ 454               	.global	setup
+ 456               	setup:
+ 457               	.LFB18:
+ 458               		.file 3 "led.c"
+   1:led.c         **** #include <avr/io.h>
+   2:led.c         **** #include <util/delay.h>
+   3:led.c         **** #include <avr/interrupt.h>
+   4:led.c         **** #include "i2c.h"  // Include I2C LCD header file
+   5:led.c         **** 
+   6:led.c         **** #define F_CPU 1000000UL   // Set CPU frequency to 1 MHz
+   7:led.c         **** 
+   8:led.c         **** #define encClk PB1      // CLK pin of the rotary encoder (PB1)
+   9:led.c         **** #define encDT PB3       // DT pin of the rotary encoder (PB3)
+  10:led.c         **** #define encButton PB2   // Button pin of the rotary encoder (PB2)
+  11:led.c         **** #define switch1 PC0     // Switch 1 (PC0)
+  12:led.c         **** #define SDA PC4         // I2C SDA pin for the LCD
+  13:led.c         **** #define SCL PC5         // I2C SCL pin for the LCD
+  14:led.c         **** 
+  15:led.c         **** volatile int position = 0;  // Tracks the position of the rotary encoder (0 to 5, representing 0% t
+  16:led.c         **** volatile int percentage = 0;  // Holds the percentage value
+  17:led.c         **** 
+  18:led.c         **** // Function prototypes
+  19:led.c         **** void setup();
+  20:led.c         **** void rotaryEncISR();
+  21:led.c         **** void buttonISR();
+  22:led.c         **** void updateLCDValue(int value);
+  23:led.c         **** 
+  24:led.c         **** int main(void) {
+  25:led.c         ****     setup();
+  26:led.c         ****     
+  27:led.c         ****     LCD_Init();  // Initialize I2C LCD
+  28:led.c         ****     LCD_Clear();  // Clear the LCD
+  29:led.c         ****     LCD_String("Value: ");  // Display "Value: " initially on the first line
+  30:led.c         **** 
+  31:led.c         ****     sei();  // Enable global interrupts
+  32:led.c         **** 
+  33:led.c         ****     while (1) {
+  34:led.c         ****         // Main loop can be left empty as everything is handled by the ISRs
+  35:led.c         ****     }
+  36:led.c         **** 
+  37:led.c         ****     return 0;
+  38:led.c         **** }
+  39:led.c         **** 
+  40:led.c         **** void setup() {
+ 459               		.loc 3 40 0
+ 460               		.cfi_startproc
+ 461               	/* prologue: function */
+ 462               	/* frame size = 0 */
+ 463               	/* stack size = 0 */
+ 464               	.L__stack_usage = 0
+  41:led.c         ****     // Set rotary encoder pins as inputs with pull-up resistors
+  42:led.c         ****     DDRB &= ~(1 << encClk) & ~(1 << encDT) & ~(1 << encButton);  // Set PB1, PB3, PB2 as inputs
+ 465               		.loc 3 42 0
+ 466 015c 84B1      		in r24,0x4
+ 467 015e 817F      		andi r24,lo8(-15)
+ 468 0160 84B9      		out 0x4,r24
+  43:led.c         ****     PORTB |= (1 << encClk) | (1 << encDT) | (1 << encButton);    // Enable pull-up resistors
+ 469               		.loc 3 43 0
+ 470 0162 85B1      		in r24,0x5
+ 471 0164 8E60      		ori r24,lo8(14)
+ 472 0166 85B9      		out 0x5,r24
+  44:led.c         **** 
+  45:led.c         ****     // Set switch1 as input with pull-up resistor
+  46:led.c         ****     DDRC &= ~(1 << switch1);  // Set PC0 as input
+ 473               		.loc 3 46 0
+ 474 0168 3898      		cbi 0x7,0
+  47:led.c         ****     PORTC |= (1 << switch1);  // Enable pull-up resistor
+ 475               		.loc 3 47 0
+ 476 016a 409A      		sbi 0x8,0
+  48:led.c         **** 
+  49:led.c         ****     // External interrupts for rotary encoder
+  50:led.c         ****     EICRA |= (1 << ISC00);  // Trigger on any change for PB1 (INT0)
+ 477               		.loc 3 50 0
+ 478 016c E9E6      		ldi r30,lo8(105)
+ 479 016e F0E0      		ldi r31,0
+ 480 0170 8081      		ld r24,Z
+ 481 0172 8160      		ori r24,lo8(1)
+ 482 0174 8083      		st Z,r24
+  51:led.c         ****     EIMSK |= (1 << INT0);   // Enable INT0 interrupt
+ 483               		.loc 3 51 0
+ 484 0176 E89A      		sbi 0x1d,0
+  52:led.c         **** 
+  53:led.c         ****     // Enable pin change interrupt for the button (PB2)
+  54:led.c         ****     PCICR |= (1 << PCIE0);  // Enable pin change interrupt on PCIE0
+ 485               		.loc 3 54 0
+ 486 0178 E8E6      		ldi r30,lo8(104)
+ 487 017a F0E0      		ldi r31,0
+ 488 017c 8081      		ld r24,Z
+ 489 017e 8160      		ori r24,lo8(1)
+ 490 0180 8083      		st Z,r24
+  55:led.c         ****     PCMSK0 |= (1 << PB2);   // Enable interrupt on PB2
+ 491               		.loc 3 55 0
+ 492 0182 EBE6      		ldi r30,lo8(107)
+ 493 0184 F0E0      		ldi r31,0
+ 494 0186 8081      		ld r24,Z
+ 495 0188 8460      		ori r24,lo8(4)
+ 496 018a 8083      		st Z,r24
+ 497 018c 0895      		ret
+ 498               		.cfi_endproc
+ 499               	.LFE18:
+ 501               		.section	.rodata.str1.1,"aMS",@progbits,1
+ 502               	.LC0:
+ 503 0000 5661 6C75 		.string	"Value: "
+ 503      653A 2000 
+ 504               		.section	.text.startup,"ax",@progbits
+ 505               	.global	main
+ 507               	main:
+ 508               	.LFB17:
+  24:led.c         ****     setup();
+ 509               		.loc 3 24 0
+ 510               		.cfi_startproc
+ 511               	/* prologue: function */
+ 512               	/* frame size = 0 */
+ 513               	/* stack size = 0 */
+ 514               	.L__stack_usage = 0
+  25:led.c         ****     
+ 515               		.loc 3 25 0
+ 516 0000 0E94 0000 		call setup
+ 517               	.LVL54:
+  27:led.c         ****     LCD_Clear();  // Clear the LCD
+ 518               		.loc 3 27 0
+ 519 0004 0E94 0000 		call LCD_Init
+ 520               	.LVL55:
+  28:led.c         ****     LCD_String("Value: ");  // Display "Value: " initially on the first line
+ 521               		.loc 3 28 0
+ 522 0008 0E94 0000 		call LCD_Clear
+ 523               	.LVL56:
+  29:led.c         **** 
+ 524               		.loc 3 29 0
+ 525 000c 80E0      		ldi r24,lo8(.LC0)
+ 526 000e 90E0      		ldi r25,hi8(.LC0)
+ 527 0010 0E94 0000 		call LCD_String
+ 528               	.LVL57:
+  31:led.c         **** 
+ 529               		.loc 3 31 0
+ 530               	/* #APP */
+ 531               	 ;  31 "led.c" 1
+ 532 0014 7894      		sei
+ 533               	 ;  0 "" 2
+ 534               	/* #NOAPP */
+ 535               	.L28:
+ 536 0016 00C0      		rjmp .L28
+ 537               		.cfi_endproc
+ 538               	.LFE17:
+ 540               		.section	.rodata.str1.1
+ 541               	.LC1:
+ 542 0008 2564 2525 		.string	"%d%%"
+ 542      00
+ 543               	.LC2:
+ 544 000d 2020 2020 		.string	"            "
+ 544      2020 2020 
+ 544      2020 2020 
+ 544      00
+ 545               		.text
+ 546               	.global	updateLCDValue
+ 548               	updateLCDValue:
+ 549               	.LFB23:
+  56:led.c         **** }
+  57:led.c         **** 
+  58:led.c         **** // ISR for rotary encoder (triggered on any change in PB1)
+  59:led.c         **** ISR(INT0_vect) {
+  60:led.c         ****     rotaryEncISR();
+  61:led.c         **** }
+  62:led.c         **** 
+  63:led.c         **** // ISR for button press (triggered on pin change in PB2)
+  64:led.c         **** ISR(PCINT0_vect) {
+  65:led.c         ****     if (!(PINB & (1 << encButton))) {  // Button pressed (active low)
+  66:led.c         ****         buttonISR();
+  67:led.c         ****     }
+  68:led.c         **** }
+  69:led.c         **** 
+  70:led.c         **** void rotaryEncISR() {
+  71:led.c         ****     // Update rotary encoder position (6 positions: 0%, 20%, 40%, 60%, 80%, 100%)
+  72:led.c         ****     if (PINB & (1 << encClk)) {
+  73:led.c         ****         if (!(PINB & (1 << encDT))) {
+  74:led.c         ****             position++;  // Clockwise rotation
+  75:led.c         ****         } else {
+  76:led.c         ****             position--;  // Counter-clockwise rotation
+  77:led.c         ****         }
+  78:led.c         ****     } else {
+  79:led.c         ****         if (!(PINB & (1 << encDT))) {
+  80:led.c         ****             position--;  // Counter-clockwise rotation
+  81:led.c         ****         } else {
+  82:led.c         ****             position++;  // Clockwise rotation
+  83:led.c         ****         }
+  84:led.c         ****     }
+  85:led.c         **** 
+  86:led.c         ****     // Limit position within the range [0, 5]
+  87:led.c         ****     if (position > 5) {
+  88:led.c         ****         position = 5;
+  89:led.c         ****     } else if (position < 0) {
+  90:led.c         ****         position = 0;
+  91:led.c         ****     }
+  92:led.c         **** 
+  93:led.c         ****     // Map position to percentage based on clock positions
+  94:led.c         ****     switch (position) {
+  95:led.c         ****         case 0:
+  96:led.c         ****             percentage = 0;
+  97:led.c         ****             break;
+  98:led.c         ****         case 1:
+  99:led.c         ****             percentage = 20;
+ 100:led.c         ****             break;
+ 101:led.c         ****         case 2:
+ 102:led.c         ****             percentage = 40;
+ 103:led.c         ****             break;
+ 104:led.c         ****         case 3:
+ 105:led.c         ****             percentage = 60;
+ 106:led.c         ****             break;
+ 107:led.c         ****         case 4:
+ 108:led.c         ****             percentage = 80;
+ 109:led.c         ****             break;
+ 110:led.c         ****         case 5:
+ 111:led.c         ****             percentage = 100;
+ 112:led.c         ****             break;
+ 113:led.c         ****     }
+ 114:led.c         **** 
+ 115:led.c         ****     updateLCDValue(percentage);  // Update LCD with the new percentage
+ 116:led.c         **** }
+ 117:led.c         **** 
+ 118:led.c         **** void buttonISR() {
+ 119:led.c         ****     // Reset the rotary encoder to the 0% position on button press
+ 120:led.c         ****     position = 0;
+ 121:led.c         ****     percentage = 0;
+ 122:led.c         ****     updateLCDValue(percentage);  // Reset percentage on the LCD
+ 123:led.c         **** }
+ 124:led.c         **** 
+ 125:led.c         **** void updateLCDValue(int value) {
+ 550               		.loc 3 125 0
+ 551               		.cfi_startproc
+ 552               	.LVL58:
+ 553 018e 0F93      		push r16
+ 554               	.LCFI5:
+ 555               		.cfi_def_cfa_offset 3
+ 556               		.cfi_offset 16, -2
+ 557 0190 1F93      		push r17
+ 558               	.LCFI6:
+ 559               		.cfi_def_cfa_offset 4
+ 560               		.cfi_offset 17, -3
+ 561 0192 CF93      		push r28
+ 562               	.LCFI7:
+ 563               		.cfi_def_cfa_offset 5
+ 564               		.cfi_offset 28, -4
+ 565 0194 DF93      		push r29
+ 566               	.LCFI8:
+ 567               		.cfi_def_cfa_offset 6
+ 568               		.cfi_offset 29, -5
+ 569 0196 00D0      		rcall .
+ 570 0198 00D0      		rcall .
+ 571 019a 1F92      		push __zero_reg__
+ 572               	.LCFI9:
+ 573               		.cfi_def_cfa_offset 11
+ 574 019c CDB7      		in r28,__SP_L__
+ 575 019e DEB7      		in r29,__SP_H__
+ 576               	.LCFI10:
+ 577               		.cfi_def_cfa_register 28
+ 578               	/* prologue: function */
+ 579               	/* frame size = 5 */
+ 580               	/* stack size = 9 */
+ 581               	.L__stack_usage = 9
+ 126:led.c         ****     char buffer[5];
+ 127:led.c         ****     snprintf(buffer, 5, "%d%%", value);  // Format the value as percentage
+ 582               		.loc 3 127 0
+ 583 01a0 9F93      		push r25
+ 584 01a2 8F93      		push r24
+ 585 01a4 80E0      		ldi r24,lo8(.LC1)
+ 586 01a6 90E0      		ldi r25,hi8(.LC1)
+ 587               	.LVL59:
+ 588 01a8 9F93      		push r25
+ 589 01aa 8F93      		push r24
+ 590 01ac 1F92      		push __zero_reg__
+ 591 01ae 85E0      		ldi r24,lo8(5)
+ 592 01b0 8F93      		push r24
+ 593 01b2 8E01      		movw r16,r28
+ 594 01b4 0F5F      		subi r16,-1
+ 595 01b6 1F4F      		sbci r17,-1
+ 596 01b8 1F93      		push r17
+ 597 01ba 0F93      		push r16
+ 598 01bc 0E94 0000 		call snprintf
+ 599               	.LVL60:
+ 600               	.LBB30:
+ 601               	.LBB31:
+  98:i2c.h         **** }
+ 602               		.loc 1 98 0
+ 603 01c0 80EC      		ldi r24,lo8(-64)
+ 604 01c2 0E94 0000 		call LCD_Command
+ 605               	.LVL61:
+ 606               	.LBE31:
+ 607               	.LBE30:
+ 128:led.c         ****     
+ 129:led.c         ****     LCD_SetCursor(1, 0);  // Move the cursor to the second line of the LCD
+ 130:led.c         ****     LCD_String("            ");  // Clear the second line (16 characters)
+ 608               		.loc 3 130 0
+ 609 01c6 80E0      		ldi r24,lo8(.LC2)
+ 610 01c8 90E0      		ldi r25,hi8(.LC2)
+ 611 01ca 0E94 0000 		call LCD_String
+ 612               	.LVL62:
+ 613               	.LBB32:
+ 614               	.LBB33:
+  98:i2c.h         **** }
+ 615               		.loc 1 98 0
+ 616 01ce 80EC      		ldi r24,lo8(-64)
+ 617 01d0 0E94 0000 		call LCD_Command
+ 618               	.LVL63:
+ 619               	.LBE33:
+ 620               	.LBE32:
+ 131:led.c         ****     
+ 132:led.c         ****     LCD_SetCursor(1, 0);  // Set cursor to the beginning of the second line again
+ 133:led.c         ****     LCD_String(buffer);   // Display the percentage value
+ 621               		.loc 3 133 0
+ 622 01d4 C801      		movw r24,r16
+ 623 01d6 0E94 0000 		call LCD_String
+ 624               	.LVL64:
+ 134:led.c         **** }
+ 625               		.loc 3 134 0
+ 626 01da 0FB6      		in __tmp_reg__,__SREG__
+ 627 01dc F894      		cli
+ 628 01de DEBF      		out __SP_H__,r29
+ 629 01e0 0FBE      		out __SREG__,__tmp_reg__
+ 630 01e2 CDBF      		out __SP_L__,r28
+ 631               	/* epilogue start */
+ 632 01e4 0F90      		pop __tmp_reg__
+ 633 01e6 0F90      		pop __tmp_reg__
+ 634 01e8 0F90      		pop __tmp_reg__
+ 635 01ea 0F90      		pop __tmp_reg__
+ 636 01ec 0F90      		pop __tmp_reg__
+ 637 01ee DF91      		pop r29
+ 638 01f0 CF91      		pop r28
+ 639 01f2 1F91      		pop r17
+ 640 01f4 0F91      		pop r16
+ 641 01f6 0895      		ret
+ 642               		.cfi_endproc
+ 643               	.LFE23:
+ 645               	.global	rotaryEncISR
+ 647               	rotaryEncISR:
+ 648               	.LFB21:
+  70:led.c         ****     // Update rotary encoder position (6 positions: 0%, 20%, 40%, 60%, 80%, 100%)
+ 649               		.loc 3 70 0
+ 650               		.cfi_startproc
+ 651               	/* prologue: function */
+ 652               	/* frame size = 0 */
+ 653               	/* stack size = 0 */
+ 654               	.L__stack_usage = 0
+  72:led.c         ****         if (!(PINB & (1 << encDT))) {
+ 655               		.loc 3 72 0
+ 656 01f8 199B      		sbis 0x3,1
+ 657 01fa 00C0      		rjmp .L31
+  73:led.c         ****             position++;  // Clockwise rotation
+ 658               		.loc 3 73 0
+ 659 01fc 1B99      		sbic 0x3,3
+ 660 01fe 00C0      		rjmp .L47
+ 661 0200 00C0      		rjmp .L34
+ 662               	.L31:
+  79:led.c         ****             position--;  // Counter-clockwise rotation
+ 663               		.loc 3 79 0
+ 664 0202 1B99      		sbic 0x3,3
+ 665 0204 00C0      		rjmp .L34
+ 666               	.L47:
+  80:led.c         ****         } else {
+ 667               		.loc 3 80 0
+ 668 0206 8091 0000 		lds r24,position
+ 669 020a 9091 0000 		lds r25,position+1
+ 670 020e 0197      		sbiw r24,1
+ 671 0210 00C0      		rjmp .L45
+ 672               	.L34:
+  82:led.c         ****         }
+ 673               		.loc 3 82 0
+ 674 0212 8091 0000 		lds r24,position
+ 675 0216 9091 0000 		lds r25,position+1
+ 676 021a 0196      		adiw r24,1
+ 677               	.L45:
+ 678 021c 9093 0000 		sts position+1,r25
+ 679 0220 8093 0000 		sts position,r24
+  87:led.c         ****         position = 5;
+ 680               		.loc 3 87 0
+ 681 0224 8091 0000 		lds r24,position
+ 682 0228 9091 0000 		lds r25,position+1
+ 683 022c 0697      		sbiw r24,6
+ 684 022e 04F0      		brlt .L35
+  88:led.c         ****     } else if (position < 0) {
+ 685               		.loc 3 88 0
+ 686 0230 85E0      		ldi r24,lo8(5)
+ 687 0232 90E0      		ldi r25,0
+ 688 0234 9093 0000 		sts position+1,r25
+ 689 0238 8093 0000 		sts position,r24
+ 690 023c 00C0      		rjmp .L36
+ 691               	.L35:
+  89:led.c         ****         position = 0;
+ 692               		.loc 3 89 0
+ 693 023e 8091 0000 		lds r24,position
+ 694 0242 9091 0000 		lds r25,position+1
+ 695 0246 97FF      		sbrs r25,7
+ 696 0248 00C0      		rjmp .L36
+  90:led.c         ****     }
+ 697               		.loc 3 90 0
+ 698 024a 1092 0000 		sts position+1,__zero_reg__
+ 699 024e 1092 0000 		sts position,__zero_reg__
+ 700               	.L36:
+  94:led.c         ****         case 0:
+ 701               		.loc 3 94 0
+ 702 0252 8091 0000 		lds r24,position
+ 703 0256 9091 0000 		lds r25,position+1
+ 704 025a 8230      		cpi r24,2
+ 705 025c 9105      		cpc r25,__zero_reg__
+ 706 025e 01F0      		breq .L38
+ 707 0260 04F4      		brge .L39
+ 708 0262 0097      		sbiw r24,0
+ 709 0264 01F0      		breq .L40
+ 710 0266 0197      		sbiw r24,1
+ 711 0268 01F4      		brne .L37
+  99:led.c         ****             break;
+ 712               		.loc 3 99 0
+ 713 026a 84E1      		ldi r24,lo8(20)
+ 714 026c 90E0      		ldi r25,0
+ 715 026e 00C0      		rjmp .L46
+ 716               	.L39:
+  94:led.c         ****         case 0:
+ 717               		.loc 3 94 0
+ 718 0270 8430      		cpi r24,4
+ 719 0272 9105      		cpc r25,__zero_reg__
+ 720 0274 01F0      		breq .L42
+ 721 0276 04F0      		brlt .L43
+ 722 0278 0597      		sbiw r24,5
+ 723 027a 01F4      		brne .L37
+ 111:led.c         ****             break;
+ 724               		.loc 3 111 0
+ 725 027c 84E6      		ldi r24,lo8(100)
+ 726 027e 90E0      		ldi r25,0
+ 727 0280 00C0      		rjmp .L46
+ 728               	.L40:
+  96:led.c         ****             break;
+ 729               		.loc 3 96 0
+ 730 0282 1092 0000 		sts percentage+1,__zero_reg__
+ 731 0286 1092 0000 		sts percentage,__zero_reg__
+  97:led.c         ****         case 1:
+ 732               		.loc 3 97 0
+ 733 028a 00C0      		rjmp .L37
+ 734               	.L38:
+ 102:led.c         ****             break;
+ 735               		.loc 3 102 0
+ 736 028c 88E2      		ldi r24,lo8(40)
+ 737 028e 90E0      		ldi r25,0
+ 738 0290 00C0      		rjmp .L46
+ 739               	.L43:
+ 105:led.c         ****             break;
+ 740               		.loc 3 105 0
+ 741 0292 8CE3      		ldi r24,lo8(60)
+ 742 0294 90E0      		ldi r25,0
+ 743 0296 00C0      		rjmp .L46
+ 744               	.L42:
+ 108:led.c         ****             break;
+ 745               		.loc 3 108 0
+ 746 0298 80E5      		ldi r24,lo8(80)
+ 747 029a 90E0      		ldi r25,0
+ 748               	.L46:
+ 111:led.c         ****             break;
+ 749               		.loc 3 111 0
+ 750 029c 9093 0000 		sts percentage+1,r25
+ 751 02a0 8093 0000 		sts percentage,r24
+ 752               	.L37:
+ 115:led.c         **** }
+ 753               		.loc 3 115 0
+ 754 02a4 8091 0000 		lds r24,percentage
+ 755 02a8 9091 0000 		lds r25,percentage+1
+ 756 02ac 0C94 0000 		jmp updateLCDValue
+ 757               	.LVL65:
+ 758               		.cfi_endproc
+ 759               	.LFE21:
+ 761               	.global	__vector_1
+ 763               	__vector_1:
+ 764               	.LFB19:
+  59:led.c         ****     rotaryEncISR();
+ 765               		.loc 3 59 0
+ 766               		.cfi_startproc
+ 767 02b0 1F92      		push r1
+ 768               	.LCFI11:
+ 769               		.cfi_def_cfa_offset 3
+ 770               		.cfi_offset 1, -2
+ 771 02b2 0F92      		push r0
+ 772               	.LCFI12:
+ 773               		.cfi_def_cfa_offset 4
+ 774               		.cfi_offset 0, -3
+ 775 02b4 0FB6      		in r0,__SREG__
+ 776 02b6 0F92      		push r0
+ 777 02b8 1124      		clr __zero_reg__
+ 778 02ba 2F93      		push r18
+ 779               	.LCFI13:
+ 780               		.cfi_def_cfa_offset 5
+ 781               		.cfi_offset 18, -4
+ 782 02bc 3F93      		push r19
+ 783               	.LCFI14:
+ 784               		.cfi_def_cfa_offset 6
+ 785               		.cfi_offset 19, -5
+ 786 02be 4F93      		push r20
+ 787               	.LCFI15:
+ 788               		.cfi_def_cfa_offset 7
+ 789               		.cfi_offset 20, -6
+ 790 02c0 5F93      		push r21
+ 791               	.LCFI16:
+ 792               		.cfi_def_cfa_offset 8
+ 793               		.cfi_offset 21, -7
+ 794 02c2 6F93      		push r22
+ 795               	.LCFI17:
+ 796               		.cfi_def_cfa_offset 9
+ 797               		.cfi_offset 22, -8
+ 798 02c4 7F93      		push r23
+ 799               	.LCFI18:
+ 800               		.cfi_def_cfa_offset 10
+ 801               		.cfi_offset 23, -9
+ 802 02c6 8F93      		push r24
+ 803               	.LCFI19:
+ 804               		.cfi_def_cfa_offset 11
+ 805               		.cfi_offset 24, -10
+ 806 02c8 9F93      		push r25
+ 807               	.LCFI20:
+ 808               		.cfi_def_cfa_offset 12
+ 809               		.cfi_offset 25, -11
+ 810 02ca AF93      		push r26
+ 811               	.LCFI21:
+ 812               		.cfi_def_cfa_offset 13
+ 813               		.cfi_offset 26, -12
+ 814 02cc BF93      		push r27
+ 815               	.LCFI22:
+ 816               		.cfi_def_cfa_offset 14
+ 817               		.cfi_offset 27, -13
+ 818 02ce EF93      		push r30
+ 819               	.LCFI23:
+ 820               		.cfi_def_cfa_offset 15
+ 821               		.cfi_offset 30, -14
+ 822 02d0 FF93      		push r31
+ 823               	.LCFI24:
+ 824               		.cfi_def_cfa_offset 16
+ 825               		.cfi_offset 31, -15
+ 826               	/* prologue: Signal */
+ 827               	/* frame size = 0 */
+ 828               	/* stack size = 15 */
+ 829               	.L__stack_usage = 15
+  60:led.c         **** }
+ 830               		.loc 3 60 0
+ 831 02d2 0E94 0000 		call rotaryEncISR
+ 832               	.LVL66:
+ 833               	/* epilogue start */
+  61:led.c         **** 
+ 834               		.loc 3 61 0
+ 835 02d6 FF91      		pop r31
+ 836 02d8 EF91      		pop r30
+ 837 02da BF91      		pop r27
+ 838 02dc AF91      		pop r26
+ 839 02de 9F91      		pop r25
+ 840 02e0 8F91      		pop r24
+ 841 02e2 7F91      		pop r23
+ 842 02e4 6F91      		pop r22
+ 843 02e6 5F91      		pop r21
+ 844 02e8 4F91      		pop r20
+ 845 02ea 3F91      		pop r19
+ 846 02ec 2F91      		pop r18
+ 847 02ee 0F90      		pop r0
+ 848 02f0 0FBE      		out __SREG__,r0
+ 849 02f2 0F90      		pop r0
+ 850 02f4 1F90      		pop r1
+ 851 02f6 1895      		reti
+ 852               		.cfi_endproc
+ 853               	.LFE19:
+ 855               	.global	buttonISR
+ 857               	buttonISR:
+ 858               	.LFB22:
+ 118:led.c         ****     // Reset the rotary encoder to the 0% position on button press
+ 859               		.loc 3 118 0
+ 860               		.cfi_startproc
+ 861               	/* prologue: function */
+ 862               	/* frame size = 0 */
+ 863               	/* stack size = 0 */
+ 864               	.L__stack_usage = 0
+ 120:led.c         ****     percentage = 0;
+ 865               		.loc 3 120 0
+ 866 02f8 1092 0000 		sts position+1,__zero_reg__
+ 867 02fc 1092 0000 		sts position,__zero_reg__
+ 121:led.c         ****     updateLCDValue(percentage);  // Reset percentage on the LCD
+ 868               		.loc 3 121 0
+ 869 0300 1092 0000 		sts percentage+1,__zero_reg__
+ 870 0304 1092 0000 		sts percentage,__zero_reg__
+ 122:led.c         **** }
+ 871               		.loc 3 122 0
+ 872 0308 8091 0000 		lds r24,percentage
+ 873 030c 9091 0000 		lds r25,percentage+1
+ 874 0310 0C94 0000 		jmp updateLCDValue
+ 875               	.LVL67:
+ 876               		.cfi_endproc
+ 877               	.LFE22:
+ 879               	.global	__vector_3
+ 881               	__vector_3:
+ 882               	.LFB20:
+  64:led.c         ****     if (!(PINB & (1 << encButton))) {  // Button pressed (active low)
+ 883               		.loc 3 64 0
+ 884               		.cfi_startproc
+ 885 0314 1F92      		push r1
+ 886               	.LCFI25:
+ 887               		.cfi_def_cfa_offset 3
+ 888               		.cfi_offset 1, -2
+ 889 0316 0F92      		push r0
+ 890               	.LCFI26:
+ 891               		.cfi_def_cfa_offset 4
+ 892               		.cfi_offset 0, -3
+ 893 0318 0FB6      		in r0,__SREG__
+ 894 031a 0F92      		push r0
+ 895 031c 1124      		clr __zero_reg__
+ 896 031e 2F93      		push r18
+ 897               	.LCFI27:
+ 898               		.cfi_def_cfa_offset 5
+ 899               		.cfi_offset 18, -4
+ 900 0320 3F93      		push r19
+ 901               	.LCFI28:
+ 902               		.cfi_def_cfa_offset 6
+ 903               		.cfi_offset 19, -5
+ 904 0322 4F93      		push r20
+ 905               	.LCFI29:
+ 906               		.cfi_def_cfa_offset 7
+ 907               		.cfi_offset 20, -6
+ 908 0324 5F93      		push r21
+ 909               	.LCFI30:
+ 910               		.cfi_def_cfa_offset 8
+ 911               		.cfi_offset 21, -7
+ 912 0326 6F93      		push r22
+ 913               	.LCFI31:
+ 914               		.cfi_def_cfa_offset 9
+ 915               		.cfi_offset 22, -8
+ 916 0328 7F93      		push r23
+ 917               	.LCFI32:
+ 918               		.cfi_def_cfa_offset 10
+ 919               		.cfi_offset 23, -9
+ 920 032a 8F93      		push r24
+ 921               	.LCFI33:
+ 922               		.cfi_def_cfa_offset 11
+ 923               		.cfi_offset 24, -10
+ 924 032c 9F93      		push r25
+ 925               	.LCFI34:
+ 926               		.cfi_def_cfa_offset 12
+ 927               		.cfi_offset 25, -11
+ 928 032e AF93      		push r26
+ 929               	.LCFI35:
+ 930               		.cfi_def_cfa_offset 13
+ 931               		.cfi_offset 26, -12
+ 932 0330 BF93      		push r27
+ 933               	.LCFI36:
+ 934               		.cfi_def_cfa_offset 14
+ 935               		.cfi_offset 27, -13
+ 936 0332 EF93      		push r30
+ 937               	.LCFI37:
+ 938               		.cfi_def_cfa_offset 15
+ 939               		.cfi_offset 30, -14
+ 940 0334 FF93      		push r31
+ 941               	.LCFI38:
+ 942               		.cfi_def_cfa_offset 16
+ 943               		.cfi_offset 31, -15
+ 944               	/* prologue: Signal */
+ 945               	/* frame size = 0 */
+ 946               	/* stack size = 15 */
+ 947               	.L__stack_usage = 15
+  65:led.c         ****         buttonISR();
+ 948               		.loc 3 65 0
+ 949 0336 1A9B      		sbis 0x3,2
+  66:led.c         ****     }
+ 950               		.loc 3 66 0
+ 951 0338 0E94 0000 		call buttonISR
+ 952               	.LVL68:
+ 953               	.L50:
+ 954               	/* epilogue start */
+  68:led.c         **** 
+ 955               		.loc 3 68 0
+ 956 033c FF91      		pop r31
+ 957 033e EF91      		pop r30
+ 958 0340 BF91      		pop r27
+ 959 0342 AF91      		pop r26
+ 960 0344 9F91      		pop r25
+ 961 0346 8F91      		pop r24
+ 962 0348 7F91      		pop r23
+ 963 034a 6F91      		pop r22
+ 964 034c 5F91      		pop r21
+ 965 034e 4F91      		pop r20
+ 966 0350 3F91      		pop r19
+ 967 0352 2F91      		pop r18
+ 968 0354 0F90      		pop r0
+ 969 0356 0FBE      		out __SREG__,r0
+ 970 0358 0F90      		pop r0
+ 971 035a 1F90      		pop r1
+ 972 035c 1895      		reti
+ 973               		.cfi_endproc
+ 974               	.LFE20:
+ 976               	.global	percentage
+ 977               		.section .bss
+ 980               	percentage:
+ 981 0000 0000      		.zero	2
+ 982               	.global	position
+ 985               	position:
+ 986 0002 0000      		.zero	2
+ 987               		.text
+ 988               	.Letext0:
+ 989               		.file 4 "/usr/lib/avr/include/stdint.h"
+ 990               		.file 5 "<built-in>"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 led.c
+     /tmp/ccCAPS0b.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccCAPS0b.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccCAPS0b.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccCAPS0b.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccCAPS0b.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccCAPS0b.s:12     .text:0000000000000000 I2C_Init
+     /tmp/ccCAPS0b.s:35     .text:0000000000000012 I2C_Start
+     /tmp/ccCAPS0b.s:59     .text:0000000000000022 I2C_Stop
+     /tmp/ccCAPS0b.s:90     .text:0000000000000036 I2C_Write
+     /tmp/ccCAPS0b.s:133    .text:000000000000005c LCD_EnablePulse
+     /tmp/ccCAPS0b.s:189    .text:0000000000000086 LCD_Command
+     /tmp/ccCAPS0b.s:238    .text:00000000000000b2 LCD_Char
+     /tmp/ccCAPS0b.s:287    .text:00000000000000de LCD_Init
+     /tmp/ccCAPS0b.s:351    .text:0000000000000120 LCD_SetCursor
+     /tmp/ccCAPS0b.s:383    .text:0000000000000130 LCD_String
+     /tmp/ccCAPS0b.s:426    .text:0000000000000148 LCD_Clear
+     /tmp/ccCAPS0b.s:456    .text:000000000000015c setup
+     /tmp/ccCAPS0b.s:507    .text.startup:0000000000000000 main
+     /tmp/ccCAPS0b.s:548    .text:000000000000018e updateLCDValue
+     /tmp/ccCAPS0b.s:647    .text:00000000000001f8 rotaryEncISR
+     /tmp/ccCAPS0b.s:985    .bss:0000000000000002 position
+     /tmp/ccCAPS0b.s:980    .bss:0000000000000000 percentage
+     /tmp/ccCAPS0b.s:763    .text:00000000000002b0 __vector_1
+     /tmp/ccCAPS0b.s:857    .text:00000000000002f8 buttonISR
+     /tmp/ccCAPS0b.s:881    .text:0000000000000314 __vector_3
+
+UNDEFINED SYMBOLS
+snprintf
+__do_copy_data
+__do_clear_bss
